@@ -10,7 +10,7 @@ from collections import defaultdict
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
-from strategies import LogGainStrategy, RandomStrategy, UncStrategy, BootstrapFromEach, QBCStrategy, ErrorReductionStrategy
+from strategies import RandomStrategy, UncStrategy, BootstrapFromEach, QBCStrategy
 
 class LearningCurve(object):
     """Class - run multiple trials or run trials one at a time"""
@@ -45,11 +45,7 @@ class LearningCurve(object):
         bootstrapped = False
 
         #Choosing strategy
-        if al_strategy == 'erreduct':
-            active_s = ErrorReductionStrategy(classifier=classifier_name, seed=t)
-        elif al_strategy == 'loggain':
-            active_s = LogGainStrategy(classifier=classifier_name, seed=t)
-        elif al_strategy == 'qbc':
+        if al_strategy == 'qbc':
             active_s = QBCStrategy(classifier=classifier_name)
         elif al_strategy == 'rand':
             active_s = RandomStrategy(seed=t)
@@ -124,7 +120,6 @@ def load_imdb(path, shuffle=True, random_state=42, \
     test_pos_files = glob.glob(path+"/test/pos/*.txt")
 
     test_corpus = []
-
     y_test = []
 
     for tnf in test_neg_files:
@@ -203,7 +198,7 @@ if __name__ == '__main__':
     parser.add_argument("-f", '--file', type=str, default="aaa.aaa",
                         help='This feature represents the name that will be written with the result. '
                              'If it is left blank, the file will not be written (default: None ).')
-    parser.add_argument("-st", "--strategies", choices=['erreduct', 'loggain', 'qbc', 'rand','unc'], nargs='*',default='unc',
+    parser.add_argument("-st", "--strategies", choices=['qbc', 'rand','unc'], nargs='*',default='qbc',
                         help="Represent a list of strategies for choosing next samples (default: rand).")
     parser.add_argument("-bs", '--bootstrap', default=10, type=int,
                         help='Sets the Boot strap (default: 10).')
