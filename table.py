@@ -7,7 +7,7 @@ def work_table(inlist):
 	for i in range(length-1):
 		if inlist[i]!=lastpred:
 			count+=1
-		lastcross=i
+			lastcross=i
 		lastpred=inlist[i]
 	if inlist[length-2]==inlist[length-1]:
 		correct=1
