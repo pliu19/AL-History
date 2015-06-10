@@ -6,6 +6,8 @@ import numpy as np
 from collections import defaultdict
 
 import scipy.sparse as ss
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import MultinomialNB
 
 class RandomBootstrap(object):
     """Class - used if strategy selected is rand"""
@@ -13,7 +15,6 @@ class RandomBootstrap(object):
         """Instantiate :mod:`al.instance_strategies.RandomBootstrap`
 
         **Parameters**
-
         * seed (*int*) - trial number."""
 
         self.randS = RandomStrategy(seed)
@@ -21,13 +22,11 @@ class RandomBootstrap(object):
     def bootstrap(self, pool, y=None, k=1):
         """
         **Parameters**
-
         * pool (*int*) - range of numbers within length of pool
         * y - None or possible pool
         * k (*int*) - 1 or possible bootstrap size
 
         **Returns**
-
         * randS.chooseNext(pool, k=k) - choose next pool"""
 
         return self.randS.chooseNext(pool, k=k)
@@ -86,7 +85,6 @@ class RandomStrategy(BaseStrategy):
         """Overide method BaseStrategy.chooseNext
 
         **Parameters**
-
         * pool (*int*) - range of numbers within length of pool
         * X - None or pool.toarray()
         * model - None
@@ -95,8 +93,7 @@ class RandomStrategy(BaseStrategy):
         * current_train_y - None or train_indices specific to y_pool
 
         **Returns**
-        * [list_pool[i] for i in rand_indices[:k]] - array of random permutations given pool
-        """
+        * [list_pool[i] for i in rand_indices[:k]] - array of random permutations given pool"""
         list_pool = list(pool)
         rand_indices = self.randgen.permutation(len(pool))
         return [list_pool[i] for i in rand_indices[:k]]
@@ -107,7 +104,6 @@ class UncStrategy(BaseStrategy):
         """Instantiate :mod:`al.instance_strategies.UncStrategy`
 
         **Parameters**
-
         * seed (*int*) - 0 or trial number.
         * sub_pool - None or sub_pool parameter"""
 
@@ -118,7 +114,6 @@ class UncStrategy(BaseStrategy):
         """Overide method BaseStrategy.chooseNext
 
         **Parameters**
-
         * pool (*int*) - range of numbers within length of pool
         * X - None or pool.toarray()
         * model - None
@@ -127,10 +122,8 @@ class UncStrategy(BaseStrategy):
         * current_train_y - None or train_indices specific to y_pool
 
         **Returns**
+        * [candidates[i] for i in uis[:k]]"""
 
-        * [candidates[i] for i in uis[:k]]
-
-        """
         if not self.sub_pool:
             rand_indices = self.randgen.permutation(len(pool))
             array_pool = np.array(list(pool))
@@ -154,14 +147,11 @@ class QBCStrategy(BaseStrategy):
         """Instantiate :mod:`al.instance_strategies.QBCStrategy`
 
         **Parameters**
-
         * classifier - Represents the classifier that will be used (default: MultinomialNB).
         * classifier_args - Represents the arguments that will be passed to the classifier (default: '').
         * seed (*int*) - 0 or trial number.
         * sub_pool - None or sub_pool parameter
-        * num_committee - 4
-
-        """
+        * num_committee - 4"""
         super(QBCStrategy, self).__init__(seed=seed)
         self.sub_pool = sub_pool
         self.num_committee = num_committee
@@ -173,14 +163,10 @@ class QBCStrategy(BaseStrategy):
         """ Computes vote entropy.
 
         **Parameters**
-
         * sample
 
         **Returns**
-
-        * out (*int*)
-
-        """
+        * out (*int*)"""
         votes = defaultdict(lambda: 0.0)
         size = float(len(sample))
 
@@ -198,7 +184,6 @@ class QBCStrategy(BaseStrategy):
         """Overide method BaseStrategy.chooseNext
 
         **Parameters**
-
         * pool (*int*) - range of numbers within length of pool
         * X - None or pool.toarray()
         * model - None
@@ -207,10 +192,7 @@ class QBCStrategy(BaseStrategy):
         * current_train_y - None or train_indices specific to y_pool
 
         **Returns**
-
-        * [candidates[i] for i in dis[:k]]
-
-        """
+        * [candidates[i] for i in dis[:k]]"""
 
         if not self.sub_pool:
             rand_indices = self.randgen.permutation(len(pool))
@@ -224,7 +206,6 @@ class QBCStrategy(BaseStrategy):
                 X = X.tocsr()
 
         # Create bags
-
         comm_predictions = []
 
         for c in range(self.num_committee):
@@ -238,11 +219,9 @@ class QBCStrategy(BaseStrategy):
                         
             bag = [current_train_indices[i] for i in r_inds]
             bag_y = [current_train_y[i] for i in r_inds]
-            new_classifier = self.classifier(**self.classifier_args)
+            new_classifier = eval(self.classifier)
             new_classifier.fit(X[bag], bag_y)
-
             predictions = new_classifier.predict(X[candidates])
-
             comm_predictions.append(predictions)
 
         # Compute disagreement for com_predictions
@@ -259,222 +238,3 @@ class QBCStrategy(BaseStrategy):
         chosen = [candidates[i] for i in dis[:k]]
 
         return chosen
-
-class LogGainStrategy(BaseStrategy):
-    """Class - used if strategy selected is loggain, inherits from :mod:`al.instance_strategies.BaseStrategy`"""
-    def __init__(self, classifier, classifier_args, seed = 0, sub_pool = None):
-        """Instantiate :mod:`al.instance_strategies.UncStrategy`
-
-        **Parameters**
-
-        * classifier - Represents the classifier that will be used (default: MultinomialNB).
-        * classifier_args - Represents the arguments that will be passed to the classifier (default: '').
-        * seed (*int*) - 0 or trial number.
-        * sub_pool - None or sub_pool parameter
-
-        """
-        super(LogGainStrategy, self).__init__(seed=seed)
-        self.classifier = classifier
-        self.sub_pool = sub_pool
-        self.classifier_args = classifier_args
-
-    def log_gain(self, probs, labels):
-        """Computes log_gain
-
-        **Parameters**
-
-        * probs, labels
-
-        **Returns**
-
-        * lg - computed log_gain
-
-        """
-        lg = 0
-        for i in xrange(len(probs)):
-            lg -= np.log(probs[i][int(labels[i])])
-        return lg
-
-    def chooseNext(self, pool, X=None, model=None, k=1, current_train_indices = None, current_train_y = None):
-        """Overide method BaseStrategy.chooseNext
-
-        **Parameters**
-
-        * pool (*int*) - range of numbers within length of pool
-        * X - None or pool.toarray()
-        * model - None
-        * k (*int*) - 1 or step size
-        * current_train_indices - None or array of trained indices
-        * current_train_y - None or train_indices specific to y_pool
-
-        **Returns**
-
-        * [candidates[i] for i in uis[:k]]
-
-        """
-        
-
-        if not self.sub_pool:
-            rand_indices = self.randgen.permutation(len(pool))
-            array_pool = np.array(list(pool))
-            candidates = array_pool[rand_indices[:self.sub_pool]]
-        else:
-            candidates = list(pool)
-
-        if ss.issparse(X):
-            if not ss.isspmatrix_csr(X):
-                X = X.tocsr()
-
-        cand_probs = model.predict_proba(X[candidates])
-
-        utils = []
-
-        for i in xrange(len(candidates)):
-            #assume binary
-            new_train_inds = list(current_train_indices)
-            new_train_inds.append(candidates[i])
-            util = 0
-            for c in [0, 1]:
-                new_train_y = list(current_train_y)
-                new_train_y.append(c)
-                new_classifier = self.classifier(**self.classifier_args)
-                new_classifier.fit(X[new_train_inds], new_train_y)
-                new_probs = new_classifier.predict_proba(X[current_train_indices])
-                util += cand_probs[i][c] * self.log_gain(new_probs, current_train_y)
-
-            utils.append(util)
-
-        uis = np.argsort(utils)
-
-
-        chosen = [candidates[i] for i in uis[:k]]
-
-        return chosen
-
-class ErrorReductionStrategy(BaseStrategy):
-    """Class - used if strategy selected is erreduct, inherits from :mod:`al.instance_strategies.BaseStrategy`"""
-    def __init__(self, classifier, classifier_args, seed = 0, sub_pool = None):
-        """Instantiate :mod:`al.instance_strategies.ErrorReductionStrategy`
-
-        **Parameters**
-
-        * classifier - Represents the classifier that will be used (default: MultinomialNB).
-        * classifier_args - Represents the arguments that will be passed to the classifier (default: '').
-        * seed (*int*) - 0 or trial number.
-        * sub_pool - None or sub_pool parameter
-
-        """
-        super(ErrorReductionStrategy, self).__init__(seed=seed)
-        self.classifier = classifier
-        self.sub_pool = sub_pool
-        self.classifier_args = classifier_args
-
-    def log_loss(self, probs):
-        """Computes log_loss
-
-        **Parameters**
-
-        * probs
-
-        **Returns**
-
-        * ll/(len(probs)*1.)
-
-        """
-        ll = 0
-
-        for i in xrange(len(probs)):
-            for prob in probs[i]:
-                ll -= (prob*np.log(prob))
-
-        return ll/(len(probs)*1.)
-
-    def chooseNext(self, pool, X=None, model=None, k=1, current_train_indices = None, current_train_y = None):
-        """Overide method BaseStrategy.chooseNext
-
-        **Parameters**
-
-        * pool (*int*) - range of numbers within length of pool
-        * X - None or pool.toarray()
-        * model - None
-        * k (*int*) - 1 or step size
-        * current_train_indices - None or array of trained indices
-        * current_train_y - None or train_indices specific to y_pool
-
-        **Returns**
-
-        * [candidates[i] for i in uis[:k]]
-
-        """
-        
-        if not self.sub_pool:
-            rand_indices = self.randgen.permutation(len(pool))
-            array_pool = np.array(list(pool))
-            candidates = array_pool[rand_indices[:self.sub_pool]]
-        else:
-            candidates = list(pool)
-
-        if ss.issparse(X):
-            if not ss.isspmatrix_csr(X):
-                X = X.tocsr()
-
-        cand_probs = model.predict_proba(X[candidates])
-
-        utils = []
-
-        for i in xrange(len(candidates)):
-            #assume binary
-            new_train_inds = list(current_train_indices)
-            new_train_inds.append(candidates[i])
-            util = 0
-            for c in [0, 1]:
-                new_train_y = list(current_train_y)
-                new_train_y.append(c)
-                new_classifier = self.classifier(**self.classifier_args)
-                new_classifier.fit(X[new_train_inds], new_train_y)
-                new_probs = new_classifier.predict_proba(X[candidates]) #X[current_train_indices] = labeled = L
-                util += cand_probs[i][c] * self.log_loss(new_probs)
-
-            utils.append(util)
-
-        uis = np.argsort(utils)
-
-
-        chosen = [candidates[i] for i in uis[:k]]
-
-        return chosen
-
-
-class RotateStrategy(BaseStrategy):
-    """Class - inherits from :mod:`al.instance_strategies.BaseStrategy`"""
-    def __init__(self, strategies):
-        """Instantiate :mod:`al.instance_strategies.ErrorReductionStrategy`
-
-        **Parameters**
-
-        * strategies
-
-        """
-        super(RotateStrategy, self).__init__(seed=0)
-        self.strategies = strategies
-        self.counter = -1
-
-    def chooseNext(self, pool, X=None, model=None, k=1, current_train_indices = None, current_train_y = None):
-        """Overide method BaseStrategy.chooseNext
-
-        **Parameters**
-
-        * pool (*int*) - range of numbers within length of pool
-        * X - None or pool.toarray()
-        * model - None
-        * k (*int*) - 1 or step size
-        * current_train_indices - None or array of trained indices
-        * current_train_y - None or train_indices specific to y_pool
-
-        **Returns**
-
-        * self.strategies[self.counter].chooseNext(pool, X, model, k=k, current_train_indices = current_train_indices, current_train_y = current_train_y)
-
-        """
-        self.counter = (self.counter+1) % len(self.strategies)
-        return self.strategies[self.counter].chooseNext(pool, X, model, k=k, current_train_indices = current_train_indices, current_train_y = current_train_y)
