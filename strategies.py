@@ -150,7 +150,7 @@ class UncStrategy(BaseStrategy):
 
 class QBCStrategy(BaseStrategy):
     """Class - used if strategy selected is qbc, inherits from :mod:`al.instance_strategies.BaseStrategy`"""
-    def __init__(self, classifier, classifier_args, seed=0, sub_pool = None, num_committee = 10):
+    def __init__(self, classifier, classifier_args=None, seed=0, sub_pool = None, num_committee = 10):
         """Instantiate :mod:`al.instance_strategies.QBCStrategy`
 
         **Parameters**
