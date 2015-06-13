@@ -10,7 +10,7 @@ from collections import defaultdict
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
-from strategies import LogGainStrategy, RandomStrategy, UncStrategy, BootstrapFromEach, QBCStrategy, ErrorReductionStrategy
+from strategies import RandomStrategy, UncStrategy, BootstrapFromEach, QBCStrategy
 
 class LearningCurve(object):
     """Class - run multiple trials or run trials one at a time"""
@@ -45,11 +45,7 @@ class LearningCurve(object):
         bootstrapped = False
 
         #Choosing strategy
-        if al_strategy == 'erreduct':
-            active_s = ErrorReductionStrategy(classifier=classifier_name, seed=t)
-        elif al_strategy == 'loggain':
-            active_s = LogGainStrategy(classifier=classifier_name, seed=t)
-        elif al_strategy == 'qbc':
+        if al_strategy == 'qbc':
             active_s = QBCStrategy(classifier=classifier_name)
         elif al_strategy == 'rand':
             active_s = RandomStrategy(seed=t)
@@ -97,13 +93,11 @@ def load_imdb(path, shuffle=True, random_state=42, \
               vectorizer = CountVectorizer(min_df=5, max_df=1.0, binary=True)):
 
     print "Loading the imdb reviews data"
-
     train_neg_files = glob.glob(path+"/train/neg/*.txt")
     train_pos_files = glob.glob(path+"/train/pos/*.txt")
 
     train_corpus = []
     y_train = []
-
     for tnf in train_neg_files:
         f = open(tnf, 'r')
         line = f.read()
@@ -111,30 +105,43 @@ def load_imdb(path, shuffle=True, random_state=42, \
         y_train.append(0)
         f.close()
 
-    # print train_corpus
-
     for tpf in train_pos_files:
         f = open(tpf, 'r')
         line = f.read()
         train_corpus.append(line)
         y_train.append(1)
         f.close()
-
+    # test dataset
     test_neg_files = glob.glob(path+"/test/neg/*.txt")
     test_pos_files = glob.glob(path+"/test/pos/*.txt")
 
     test_corpus = []
-
     y_test = []
+
+    lengoftest = []
 
     for tnf in test_neg_files:
         f = open(tnf, 'r')
+
+        temp = f.read()
+        words = temp.split()
+        num_words = len(words)
+        lengoftest.append(num_words)
+
         test_corpus.append(f.read())
         y_test.append(0)
         f.close()
 
+    print lengoftest[0]
+
     for tpf in test_pos_files:
         f = open(tpf, 'r')
+
+        temp = f.read()
+        words = temp.split()
+        num_words = len(words)
+        lengoftest.append(num_words)
+
         test_corpus.append(f.read())
         y_test.append(1)
         f.close()
@@ -146,7 +153,6 @@ def load_imdb(path, shuffle=True, random_state=42, \
     t0 = time()
 
     X_train = vectorizer.fit_transform(train_corpus)
-
 
     duration = time() - t0
     print("done in %fs" % (duration))
@@ -166,6 +172,7 @@ def load_imdb(path, shuffle=True, random_state=42, \
 
     y_train = np.array(y_train)
     y_test = np.array(y_test)
+    lengoftest = np.array(lengoftest)
 
     if shuffle:
         np.random.seed(random_state)
@@ -181,13 +188,20 @@ def load_imdb(path, shuffle=True, random_state=42, \
         X_test = X_test.tocsr()
         X_test = X_test[indices]
         y_test = y_test[indices]
+        lengoftest = lengoftest[indices]
 
         test_corpus_shuffled = [test_corpus[i] for i in indices]
+
     else:
         train_corpus_shuffled = train_corpus
         test_corpus_shuffled = test_corpus
 
-    return X_train, y_train, X_test, y_test, train_corpus_shuffled, test_corpus_shuffled
+    return X_train, y_train, X_test, y_test, train_corpus_shuffled, test_corpus_shuffled, lengoftest
+
+def get_length_of_text():
+    test_neg_files = glob.glob(path+"/test/neg/*.txt")
+    test_pos_files = glob.glob(path+"/test/pos/*.txt")
+
 
 if __name__ == '__main__':
 
@@ -203,7 +217,7 @@ if __name__ == '__main__':
     parser.add_argument("-f", '--file', type=str, default="aaa.aaa",
                         help='This feature represents the name that will be written with the result. '
                              'If it is left blank, the file will not be written (default: None ).')
-    parser.add_argument("-st", "--strategies", choices=['erreduct', 'loggain', 'qbc', 'rand','unc'], nargs='*',default='unc',
+    parser.add_argument("-st", "--strategies", choices=['qbc', 'rand','unc'], nargs='*',default='unc',
                         help="Represent a list of strategies for choosing next samples (default: rand).")
     parser.add_argument("-bs", '--bootstrap', default=10, type=int,
                         help='Sets the Boot strap (default: 10).')
@@ -216,10 +230,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     vect = CountVectorizer(min_df=5, max_df=1.0, binary=True, ngram_range=(1,1))
-    X_tr, y_tr, X_te, y_te, tr_corp, te_corp = load_imdb("C:\\Users\\Ping\\Desktop\\aclImdb", vectorizer=vect)
+    X_tr, y_tr, X_te, y_te, tr_corp, te_corp, lengoftest = load_imdb("C:\\Users\\Ping\\Desktop\\aclImdb", vectorizer=vect)
 
     learning_api = LearningCurve()
     his_predition, his_probal = learning_api.run_trials(X_tr, y_tr, X_te, y_te, args.strategies, args.classifier, args.bootstrap, args.stepsize, args.budget, args.num_trials)
+
+    print lengoftest[0]
+    print lengoftest.shape
 
     for i in his_probal.keys():
         file_name_proba = args.strategies + "_" + "Trial" + "_" + str(i+1) + "_proba"
@@ -228,3 +245,10 @@ if __name__ == '__main__':
     for i in his_predition.keys():
         file_name_prediction = args.strategies + "_" + "Trial" + "_" + str(i+1) + "_prediction"
         np.savetxt("%s.csv" %file_name_prediction, his_predition[i], delimiter=",")
+
+
+
+
+
+
+
