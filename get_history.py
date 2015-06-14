@@ -5,6 +5,7 @@ import scipy.sparse as ss
 import argparse
 from time import time
 
+from sklearn.metrics import accuracy_score
 from sklearn import metrics
 from collections import defaultdict
 from sklearn.feature_extraction.text import CountVectorizer
@@ -28,7 +29,7 @@ class LearningCurve(object):
     def _run_a_single_trial(self, X_pool, y_pool, X_test, y_test, al_strategy, classifier_name, bootstrap_size,  step_size, budget, t):
         """Helper method for running multiple trials."""
 
-        rows = 25000
+        rows = len(y_test)
         column = int(budget/step_size) + 1
 
         result_prediction = np.zeros(shape=(rows, column))
@@ -83,6 +84,9 @@ class LearningCurve(object):
 
             ite = ite + 1
 
+        accu = accuracy_score(y_test, result_prediction[:,column-2])
+        print "This is the %r-th trial, the accuracy is %r" %(str(t+1),accu)
+
         for num in range(rows):
             result_prediction[num][ite] = y_test[num]
             result_probas[num][ite] = y_test[num]
@@ -93,11 +97,13 @@ def load_imdb(path, shuffle=True, random_state=42, \
               vectorizer = CountVectorizer(min_df=5, max_df=1.0, binary=True)):
 
     print "Loading the imdb reviews data"
+
     train_neg_files = glob.glob(path+"/train/neg/*.txt")
     train_pos_files = glob.glob(path+"/train/pos/*.txt")
 
     train_corpus = []
     y_train = []
+
     for tnf in train_neg_files:
         f = open(tnf, 'r')
         line = f.read()
@@ -105,43 +111,30 @@ def load_imdb(path, shuffle=True, random_state=42, \
         y_train.append(0)
         f.close()
 
+    # print train_corpus
+
     for tpf in train_pos_files:
         f = open(tpf, 'r')
         line = f.read()
         train_corpus.append(line)
         y_train.append(1)
         f.close()
-    # test dataset
+
     test_neg_files = glob.glob(path+"/test/neg/*.txt")
     test_pos_files = glob.glob(path+"/test/pos/*.txt")
 
     test_corpus = []
-    y_test = []
 
-    lengoftest = []
+    y_test = []
 
     for tnf in test_neg_files:
         f = open(tnf, 'r')
-
-        temp = f.read()
-        words = temp.split()
-        num_words = len(words)
-        lengoftest.append(num_words)
-
         test_corpus.append(f.read())
         y_test.append(0)
         f.close()
 
-    print lengoftest[0]
-
     for tpf in test_pos_files:
         f = open(tpf, 'r')
-
-        temp = f.read()
-        words = temp.split()
-        num_words = len(words)
-        lengoftest.append(num_words)
-
         test_corpus.append(f.read())
         y_test.append(1)
         f.close()
@@ -153,6 +146,7 @@ def load_imdb(path, shuffle=True, random_state=42, \
     t0 = time()
 
     X_train = vectorizer.fit_transform(train_corpus)
+
 
     duration = time() - t0
     print("done in %fs" % (duration))
@@ -172,7 +166,6 @@ def load_imdb(path, shuffle=True, random_state=42, \
 
     y_train = np.array(y_train)
     y_test = np.array(y_test)
-    lengoftest = np.array(lengoftest)
 
     if shuffle:
         np.random.seed(random_state)
@@ -188,19 +181,13 @@ def load_imdb(path, shuffle=True, random_state=42, \
         X_test = X_test.tocsr()
         X_test = X_test[indices]
         y_test = y_test[indices]
-        lengoftest = lengoftest[indices]
 
         test_corpus_shuffled = [test_corpus[i] for i in indices]
-
     else:
         train_corpus_shuffled = train_corpus
         test_corpus_shuffled = test_corpus
 
-    return X_train, y_train, X_test, y_test, train_corpus_shuffled, test_corpus_shuffled, lengoftest
-
-def get_length_of_text():
-    test_neg_files = glob.glob(path+"/test/neg/*.txt")
-    test_pos_files = glob.glob(path+"/test/pos/*.txt")
+    return X_train, y_train, X_test, y_test, indices
 
 
 if __name__ == '__main__':
@@ -218,7 +205,7 @@ if __name__ == '__main__':
                         help='This feature represents the name that will be written with the result. '
                              'If it is left blank, the file will not be written (default: None ).')
     parser.add_argument("-st", "--strategies", choices=['qbc', 'rand','unc'], nargs='*',default='unc',
-                        help="Represent a list of strategies for choosing next samples (default: rand).")
+                        help="Represent a list of strategies for choosing next samples (default: unc).")
     parser.add_argument("-bs", '--bootstrap', default=10, type=int,
                         help='Sets the Boot strap (default: 10).')
     parser.add_argument("-b", '--budget', default=500, type=int,
@@ -230,13 +217,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     vect = CountVectorizer(min_df=5, max_df=1.0, binary=True, ngram_range=(1,1))
-    X_tr, y_tr, X_te, y_te, tr_corp, te_corp, lengoftest = load_imdb("C:\\Users\\Ping\\Desktop\\aclImdb", vectorizer=vect)
+    X_tr, y_tr, X_te, y_te, indices = load_imdb("C:\\Users\\Ping\\Desktop\\aclImdb", vectorizer=vect)
 
     learning_api = LearningCurve()
     his_predition, his_probal = learning_api.run_trials(X_tr, y_tr, X_te, y_te, args.strategies, args.classifier, args.bootstrap, args.stepsize, args.budget, args.num_trials)
-
-    print lengoftest[0]
-    print lengoftest.shape
 
     for i in his_probal.keys():
         file_name_proba = args.strategies + "_" + "Trial" + "_" + str(i+1) + "_proba"
@@ -246,6 +230,31 @@ if __name__ == '__main__':
         file_name_prediction = args.strategies + "_" + "Trial" + "_" + str(i+1) + "_prediction"
         np.savetxt("%s.csv" %file_name_prediction, his_predition[i], delimiter=",")
 
+    # Get the max, min, average of probability in the 10 trials
+
+    row, column = his_probal[0].shape
+    max_probal = np.zeros(shape=(row,column))
+    min_probal = his_probal[0]
+
+    print max_probal[0][0]
+
+    for i in his_probal.keys():
+        current = his_probal[i]
+        print current[0][0]
+        for a in range(row):
+            for b in range(column):
+                if max_probal[a][b] < current[a][b]:
+                    max_probal[a][b] = current[a][b]
+
+    for i in his_probal.keys():
+        current = his_probal[i]
+        for a in range(row):
+            for b in range(column):
+                if min_probal[a][b] > current[a][b]:
+                    min_probal[a][b] = current[a][b]
+
+    print max_probal[0][0]
+    print min_probal[0][0]
 
 
 
