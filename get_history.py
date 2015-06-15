@@ -181,7 +181,6 @@ def load_imdb(path, shuffle=True, random_state=42, \
         X_test = X_test.tocsr()
         X_test = X_test[indices]
         y_test = y_test[indices]
-        print indices[:10]
         test_corpus_shuffled = [test_corpus[i] for i in indices]
     else:
         train_corpus_shuffled = train_corpus
@@ -210,14 +209,33 @@ def get_lengthoftext(indices,path):
         length.append(number)
         f.close()
 
-
     length = np.array(length)
-    print length[0]
-
     length = length[indices]
-    print "shape of length %r" %length.shape
-    print length[:10]
+
     return length
+def table_of_cross(array, lengthoftxt):
+    output = np.zeros(shape=(25000,4))
+    for j in range(25000):
+        temp = array[j]
+        lastpred=temp[0]
+        length=len(temp)
+        lastcross=0
+        count=0
+        for i in range(length-1):
+            if temp[i] != lastpred:
+                count += 1
+                lastcross = i
+            lastpred=temp[i]
+        if temp[length-2]==temp[length-1]:
+            correct = 1
+        else:
+            correct = 0
+        output[j][0] = count
+        output[j][1] = lastcross
+        output[j][2] = lengthoftxt[j]
+        output[j][3] = correct
+
+    return output
 
 if __name__ == '__main__':
 
@@ -237,8 +255,8 @@ if __name__ == '__main__':
                         help="Represent a list of strategies for choosing next samples (default: unc).")
     parser.add_argument("-bs", '--bootstrap', default=10, type=int,
                         help='Sets the Boot strap (default: 10).')
-    parser.add_argument("-b", '--budget', default=3000, type=int,
-                        help='Sets the budget (default: 1000).')
+    parser.add_argument("-b", '--budget', default=100, type=int,
+                        help='Sets the budget (default: 2000).')
     parser.add_argument("-sz", '--stepsize', default=10, type=int,
                         help='Sets the step size (default: 10).')
     parser.add_argument("-sp", '--subpool', default=None, type=int,
@@ -247,13 +265,14 @@ if __name__ == '__main__':
 
     vect = CountVectorizer(min_df=5, max_df=1.0, binary=True, ngram_range=(1,1))
     X_tr, y_tr, X_te, y_te, indices = load_imdb("C:\\Users\\Ping\\Desktop\\aclImdb", vectorizer=vect)
+    lengthoftxt = get_lengthoftext(indices,"C:\\Users\\Ping\\Desktop\\aclImdb")
 
     # Directly use the classifier and calculate the accuracy
     model = eval(args.classifier)
     model.fit(X_tr,y_tr)
     direct = model.predict(X_te)
     directaccuracy = accuracy_score(y_te,direct)
-    print "direct use, the accuracy is %r" %directaccuracy
+    print "directly use the classifier, the accuracy is %r" %directaccuracy
 
     # Use the Active Learning
     learning_api = LearningCurve()
@@ -266,7 +285,8 @@ if __name__ == '__main__':
     for i in his_predition.keys():
         file_name_prediction = args.strategies + "_" + "Trial" + "_" + str(i+1) + "_prediction"
         np.savetxt("%s.csv" %file_name_prediction, his_predition[i], delimiter=",")
-
+        crosstable = table_of_cross(his_predition[i],lengthoftxt)
+        print crosstable[0]
     # Get the max, min, average of probability in the 10 trials
 
     row, column = his_probal[0].shape
@@ -275,7 +295,6 @@ if __name__ == '__main__':
 
     for i in his_probal.keys():
         current = his_probal[i]
-        print current[0][0]
         for a in range(row):
             for b in range(column):
                 if max_probal[a][b] < current[a][b]:
@@ -288,10 +307,7 @@ if __name__ == '__main__':
                 if min_probal[a][b] > current[a][b]:
                     min_probal[a][b] = current[a][b]
 
-    print "Maximum %r" %max_probal[0][0]
-    print "Minimal %r"%min_probal[0][0]
 
-    lengthoftxt = get_lengthoftext(indices,"C:\\Users\\Ping\\Desktop\\aclImdb")
 
 
 
