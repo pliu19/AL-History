@@ -21,7 +21,7 @@ class LearningCurve(object):
         self.history_preditcion = { }
 
         for t in range(num_trials):
-            print "trial", t
+            print "trial", t+1
             self.history_preditcion[t],self.history_probas[t] = self._run_a_single_trial(X_pool, y_pool, X_test, y_test,al_strategy, classifier_name, bootstrap_size,  step_size, budget, t)
 
         return self.history_preditcion, self.history_probas
@@ -286,7 +286,9 @@ if __name__ == '__main__':
         file_name_prediction = args.strategies + "_" + "Trial" + "_" + str(i+1) + "_prediction"
         np.savetxt("%s.csv" %file_name_prediction, his_predition[i], delimiter=",")
         crosstable = table_of_cross(his_predition[i],lengthoftxt)
-        print crosstable[0]
+        file_name_crosstable = args.strategies + "_" + "Trial" + "_" + str(i+1) + "_crosstable"
+        np.savetxt("%s.csv" %file_name_crosstable, crosstable, delimiter=",")
+
     # Get the max, min, average of probability in the 10 trials
 
     row, column = his_probal[0].shape
