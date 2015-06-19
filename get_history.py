@@ -293,32 +293,32 @@ if __name__ == '__main__':
     # Get the max, min of probability in the 10 trials
 
     row, column = his_probal[0].shape
-    max_probal = np.zeros(shape=(row,column))
-    min_probal = np.ones(shape=(row,column))
+    # max_probal = np.zeros(shape=(row,column))
+    # min_probal = np.ones(shape=(row,column))
+    #
+    # for i in his_probal.keys():
+    #     current = his_probal[i]
+    #     for a in range(row):
+    #         for b in range(column):
+    #             if max_probal[a][b] < current[a][b]:
+    #                 max_probal[a][b] = current[a][b]
+    #
+    # for i in his_probal.keys():
+    #     current = his_probal[i]
+    #     for a in range(row):
+    #         for b in range(column):
+    #             if min_probal[a][b] > current[a][b]:
+    #                 min_probal[a][b] = current[a][b]
 
-    for i in his_probal.keys():
-        current = his_probal[i]
-        for a in range(row):
-            for b in range(column):
-                if max_probal[a][b] < current[a][b]:
-                    max_probal[a][b] = current[a][b]
-
-    for i in his_probal.keys():
-        current = his_probal[i]
-        for a in range(row):
-            for b in range(column):
-                if min_probal[a][b] > current[a][b]:
-                    min_probal[a][b] = current[a][b]
-
+    # Get the mean of probability and cross table
     mean_probal = np.zeros(shape=(row, column))
     for i in his_probal.keys():
         mean_probal += his_probal[i]
-
-    mean_probal = mean_probal/10.
-
+    mean_probal = mean_probal/10
     file_name_mean_prediction = args.strategies + "_" + "Mean" + "_prediction"
     np.savetxt("%s.csv" %file_name_mean_prediction, mean_probal, delimiter=",")
-
+    file_name_mean_crosstable = args.strategies + "_Mean" + "_crosstable"
+    np.savetxt("%s.txt" %file_name_mean_crosstable, crosstable.astype(int), delimiter=",",fmt='%i')
 
 
 
