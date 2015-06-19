@@ -4,7 +4,7 @@ import numpy as np
 import scipy.sparse as ss
 import argparse
 from time import time
-
+import matplotlib as plt
 from sklearn.metrics import accuracy_score
 from sklearn import metrics
 from collections import defaultdict
@@ -213,6 +213,7 @@ def get_lengthoftext(indices,path):
     length = length[indices]
 
     return length
+
 def table_of_cross(array, lengthoftxt):
     output = np.zeros(shape=(25000,4))
     for j in range(25000):
@@ -248,19 +249,19 @@ if __name__ == '__main__':
 
     parser.add_argument('-num_folds', type=int, default=10, help='The number of folds.')
 
-    parser.add_argument("-f", '--file', type=str, default="aaa.aaa",
-                        help='This feature represents the name that will be written with the result. '
-                             'If it is left blank, the file will not be written (default: None ).')
+    # parser.add_argument("-f", '--file', type=str, default="aaa.aaa",
+    #                     help='This feature represents the name that will be written with the result. '
+    #                          'If it is left blank, the file will not be written (default: None ).')
     parser.add_argument("-st", "--strategies", choices=['qbc', 'rand','unc'], nargs='*',default='unc',
                         help="Represent a list of strategies for choosing next samples (default: unc).")
     parser.add_argument("-bs", '--bootstrap', default=10, type=int,
                         help='Sets the Boot strap (default: 10).')
-    parser.add_argument("-b", '--budget', default=100, type=int,
+    parser.add_argument("-b", '--budget', default=200, type=int,
                         help='Sets the budget (default: 2000).')
     parser.add_argument("-sz", '--stepsize', default=10, type=int,
                         help='Sets the step size (default: 10).')
-    parser.add_argument("-sp", '--subpool', default=None, type=int,
-                        help='Sets the sub pool size (default: None).')
+    # parser.add_argument("-sp", '--subpool', default=None, type=int,
+    #                     help='Sets the sub pool size (default: None).')
     args = parser.parse_args()
 
     vect = CountVectorizer(min_df=5, max_df=1.0, binary=True, ngram_range=(1,1))
@@ -289,7 +290,7 @@ if __name__ == '__main__':
         file_name_crosstable = args.strategies + "_" + "Trial" + "_" + str(i+1) + "_crosstable"
         np.savetxt("%s.csv" %file_name_crosstable, crosstable, delimiter=",")
 
-    # Get the max, min, average of probability in the 10 trials
+    # Get the max, min of probability in the 10 trials
 
     row, column = his_probal[0].shape
     max_probal = np.zeros(shape=(row,column))
@@ -308,6 +309,19 @@ if __name__ == '__main__':
             for b in range(column):
                 if min_probal[a][b] > current[a][b]:
                     min_probal[a][b] = current[a][b]
+
+    mean_probal = np.zeros(shape=(row, column))
+    for i in his_probal.keys():
+        mean_probal += his_probal[i]
+
+    mean_probal = mean_probal/10.
+    print mean_probal[0][0]
+
+    plt.plot(mean_probal[0])
+    plt.show()
+    file_name_mean_prediction = args.strategies + "_" + "Mean" + "_prediction"
+    np.savetxt("%s.csv" %file_name_mean_prediction, mean_probal, delimiter=",")
+
 
 
 
