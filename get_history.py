@@ -315,10 +315,7 @@ if __name__ == '__main__':
         mean_probal += his_probal[i]
 
     mean_probal = mean_probal/10.
-    print mean_probal[0][0]
 
-    plt.plot(mean_probal[0])
-    plt.show()
     file_name_mean_prediction = args.strategies + "_" + "Mean" + "_prediction"
     np.savetxt("%s.csv" %file_name_mean_prediction, mean_probal, delimiter=",")
 
