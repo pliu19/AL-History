@@ -238,12 +238,19 @@ def table_of_cross(array, lengthoftxt):
 
     return output
 
+def get_classifier(classifier, argus):
+
+    result = classifier + '(' + argus + ')'
+    return result
+
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-path', help='The path to the content file.')
 
-    parser.add_argument('-classifier',choices=['LogisticRegression()','MultinomialNB()'], default='MultinomialNB()',
+    parser.add_argument('-classifier',choices=['LogisticRegression()','MultinomialNB()'], default='MultinomialNB',
                         help='The underlying classifier.')
     parser.add_argument("-nt", "--num_trials", type=int, default=10, help="Number of trials (default: 10).")
 
@@ -254,6 +261,8 @@ if __name__ == '__main__':
     #                          'If it is left blank, the file will not be written (default: None ).')
     parser.add_argument("-st", "--strategies", choices=['qbc', 'rand','unc'], nargs='*',default='unc',
                         help="Represent a list of strategies for choosing next samples (default: unc).")
+    parser.add_argument("-a","--arguments", default='',
+                        help="Represents the arguments that will be passed to the classifier (default: '').")
     parser.add_argument("-bs", '--bootstrap', default=10, type=int,
                         help='Sets the Boot strap (default: 10).')
     parser.add_argument("-b", '--budget', default=200, type=int,
@@ -269,7 +278,9 @@ if __name__ == '__main__':
     lengthoftxt = get_lengthoftext(indices,"C:\\Users\\Ping\\Desktop\\aclImdb")
 
     # Directly use the classifier and calculate the accuracy
-    model = eval(args.classifier)
+
+    combine_classifier = get_classifier(args.classifier, args.arguments)
+    model = eval(combine_classifier)
     model.fit(X_tr,y_tr)
     direct = model.predict(X_te)
     directaccuracy = accuracy_score(y_te,direct)
@@ -277,7 +288,7 @@ if __name__ == '__main__':
 
     # Use the Active Learning
     learning_api = LearningCurve()
-    his_predition, his_probal = learning_api.run_trials(X_tr, y_tr, X_te, y_te, args.strategies, args.classifier, args.bootstrap, args.stepsize, args.budget, args.num_trials)
+    his_predition, his_probal = learning_api.run_trials(X_tr, y_tr, X_te, y_te, args.strategies, combine_classifier, args.bootstrap, args.stepsize, args.budget, args.num_trials)
 
     for i in his_probal.keys():
         file_name_proba = args.strategies + "_" + "Trial" + "_" + str(i+1) + "_proba"
