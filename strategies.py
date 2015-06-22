@@ -37,7 +37,6 @@ class BootstrapFromEach(object):
         """Instantiate :mod:`al.instance_strategies.BootstrapFromEach`
 
         **Parameters**
-
         * seed (*int*) - trial number."""
 
         self.randS = RandomStrategy(seed)
@@ -161,7 +160,6 @@ class QBCStrategy(BaseStrategy):
 
     def vote_entropy(self, sample):
         """ Computes vote entropy.
-
         **Parameters**
         * sample
 

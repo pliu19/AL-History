@@ -8,28 +8,28 @@ from matplotlib.ticker import FuncFormatter
 if __name__ == "__main__":
 
     frequency = []
-    with open("unc_Mean_crosstable.txt") as csv:
+    with open("./rand_LogisticRegression_C=0.1/rand_Trial_1_crosstable.txt") as csv:
         for j in range(25000):
             line = csv.readline()
-            item = line.split(',')
-            int_list = [int(i) for i in item]
+            int_list = map(float, line.split(','))
+            # item = line.split(',')
+            # int_list = [int(i) for i in item]
             frequency.append(int_list[1])
 
-    # temp = itemfreq(frequency)
-    # listX = []
-    # listFrequency = []
-    # listPercentage = []
-    # row, column = temp.shape
-    # column = column + 1
-    # newarray = np.zeros(shape=(row, column))
-    # for i in range(row):
-    #     listX.append(temp[i][0])
-    #     listFrequency.append(temp[i][1])
-    #     listPercentage.append(temp[i][1]/25000.)
-    #     print listPercentage[i]
+    temp = itemfreq(frequency)
+    listX = []
+    listFrequency = []
+    listPercentage = []
+    row, column = temp.shape
+    column = column + 1
+    newarray = np.zeros(shape=(row, column))
+    for i in range(row):
+        listX.append(temp[i][0])
+        listFrequency.append(temp[i][1])
+        listPercentage.append(temp[i][1]/25000.)
+        print listPercentage[i]
 
     print listFrequency
-
 
     fig = plt.figure(figsize=(9,12))
     ax1 = fig.add_subplot(311)

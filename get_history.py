@@ -58,7 +58,6 @@ class LearningCurve(object):
         labels = np.unique(y_pool)
 
         #Loop for prediction
-
         ite = 0
         while len(trainIndices) < budget and len(pool) >= step_size:
             if not bootstrapped:
@@ -246,7 +245,6 @@ def table_of_cross(array, lengthoftxt):
         output[j][1] = lastcross
         output[j][2] = lengthoftxt[j]
         output[j][3] = correct
-
     return output
 
 def get_classifier(classifier, argus):
@@ -261,9 +259,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-path', help='The path to the content file.')
 
-    parser.add_argument('-classifier',choices=['LogisticRegression','MultinomialNB'], default='LogisticRegression',
+    parser.add_argument('-classifier',choices=['LogisticRegression','MultinomialNB','svm'], default='MultinomialNB',
                         help='The underlying classifier.')
-    parser.add_argument("-a","--arguments", default='C=0.1',
+    parser.add_argument("-a","--arguments", default='alpha=1.0',
                         help="Represents the arguments that will be passed to the classifier (default: '').")
     parser.add_argument("-nt", "--num_trials", type=int, default=10, help="Number of trials (default: 10).")
 
@@ -321,6 +319,9 @@ if __name__ == '__main__':
     # np.savetxt("%s.csv" %file_name_mean_prediction, mean_probal, delimiter=",")
     # file_name_mean_crosstable = args.strategies + "_Mean" + "_crosstable"
     # np.savetxt("%s.txt" %file_name_mean_crosstable, crosstable.astype(int), delimiter=",",fmt='%i')
+
+
+
 
 
 
