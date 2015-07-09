@@ -10,8 +10,8 @@ from matplotlib.ticker import MultipleLocator, FormatStrFormatter,LogLocator
 if __name__ == "__main__":
 
     folder_list = ['./rand_LogisticRegression_C=0.1/','./rand_LogisticRegression_C=1.0/',
-                   './rand_LogisticRegression_C=10.0/','./rand_LogisticRegression_C=100.0/']
-    label = ['C=0.1','C=1.0','C=10.0','C=100.0']
+                   './rand_DecisionTreeClassifier_max_depth=8/','./rand_DecisionTreeClassifier_max_depth=32/']
+    label = ['0.1','1.0','Max_Depth=8','Max_Depth=']
     numberoflines = len(folder_list)
 
     fig = plt.figure(figsize=(60,15))
@@ -23,7 +23,7 @@ if __name__ == "__main__":
         path = folder_list[i] + 'rand_Mean_Lastcross.txt'
         frequency = []
         with open(path) as csv:
-            for j in range(25000):
+            for j in range(10320):
                 line = csv.readline()
                 int_list = map(float, line.split(','))
                 frequency.append(int_list[0])
@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
         for j in range(row):
             listX.append(temp[j][0])
-            listPercentage.append(temp[j][1]/25000.)
+            listPercentage.append(temp[j][1]/10320.)
 
         pc = np.cumsum(listPercentage)
         plt.plot(listX,pc, label = label[i])
@@ -56,6 +56,6 @@ if __name__ == "__main__":
     ax.xaxis.grid(True,'major',linewidth=2)
     ax.yaxis.grid(True,'major',linewidth=2)
 
-    plt.legend(loc = 2,handleheight = 4, fontsize = 25, ncol = numberoflines)
+    plt.legend(loc = 4,handleheight = 4, fontsize = 25, ncol = numberoflines)
 
-    plt.savefig("rand_LogisticRegression.png")
+    plt.savefig("rand_DecisionTreeClassifier.png")

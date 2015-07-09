@@ -18,7 +18,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder,MinMaxScaler
 from strategies import RandomStrategy, UncStrategy, BootstrapFromEach, QBCStrategy
 
 class LearningCurve(object):
@@ -253,19 +253,18 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-path', help='The path to the content file.')
 
-    parser.add_argument('-classifier',choices=['LogisticRegression','MultinomialNB','SVC','DecisionTreeClassifier'], default='LogisticRegression',
+    parser.add_argument('-classifier',choices=['LogisticRegression','MultinomialNB','SVC','DecisionTreeClassifier'], default='SVC',
                         help='The underlying classifier.')
-    parser.add_argument("-a","--arguments", default='C=0.1',
+    parser.add_argument("-a","--arguments", default="kernel='poly',degree=2, C=0.1, probability=True",
                         help="Represents the arguments that will be passed to the classifier (default: '').")
     parser.add_argument("-nt", "--num_trials", type=int, default=10, help="Number of trials (default: 10).")
-
 
     parser.add_argument("-st", "--strategies", choices=['qbc', 'rand','unc'], nargs='*',default='rand',
                         help="Represent a list of strategies for choosing next samples (default: unc).")
 
     parser.add_argument("-bs", '--bootstrap', default=10, type=int,
                         help='Sets the Boot strap (default: 10).')
-    parser.add_argument("-b", '--budget', default=10000, type=int,
+    parser.add_argument("-b", '--budget', default=5000, type=int,
                         help='Sets the budget (default: 2000).')
     parser.add_argument("-sz", '--stepsize', default=10, type=int,
                         help='Sets the step size (default: 10).')
@@ -273,12 +272,14 @@ if __name__ == '__main__':
     #                     help='Sets the sub pool size (default: None).')
     args = parser.parse_args()
 
-    X_tr, X_te,y_tr, y_te = load_data("C:\\Users\\Ping\\Desktop\\ibn_sina.zip")
+    X_tr, X_te,y_tr, y_te = load_data("./calhousing.zip")
 
     # Directly use the classifier and calculate the accuracy
     combine_classifier = get_classifier(args.classifier, args.arguments)
 
     model = eval(combine_classifier)
+    temp = MinMaxScaler()
+    temp.fit(X_tr,y_tr)
     model.fit(X_tr,y_tr)
     direct = model.predict(X_te)
     directaccuracy = accuracy_score(y_te,direct)

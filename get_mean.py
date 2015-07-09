@@ -4,7 +4,7 @@ import numpy as np
 def Lastcross(array):
 
     last_cross = []
-    for j in range(25000):
+    for j in range(10320):
         temp = array[j]
 
         if temp[0]>0.5:
@@ -30,27 +30,28 @@ def Lastcross(array):
 
 if __name__ == '__main__':
 
-    budget = 10000
+    budget = 5000
     bootstrap = 10
     stepsize = 10
     column_file = (budget - bootstrap) / stepsize + 2
-    row_file = 25000
+    row_file = 10320
+    string = 'rand_DecisionTreeClassifier_max_depth=2'
 
-    folder = "./rand_MultinomialNB_alpha=1.0/"
+    folder = "./"+string+"/"
 
     mean_probal = np.zeros(shape=(row_file,column_file))
     for i in range(10):
-        path ="rand_MultinomialNB_alpha=1.0/rand_Trial_" + str(i+1)+ "_proba.csv"
+        path =string + "/rand_Trial_" + str(i+1)+ "_proba.csv"
         temp = np.loadtxt(open(path,"rb"),delimiter=",")
         mean_probal += temp
 
     mean_probal = mean_probal / 10.
 
-    file_name_mean_prediction = "rand_MultinomialNB_alpha=1.0/rand_Mean_proba"
+    file_name_mean_prediction = string + "/rand_Mean_proba"
     np.savetxt("%s.csv" %file_name_mean_prediction, mean_probal, delimiter=",")
 
     last_cross_mean = Lastcross(mean_probal)
     last_cross_mean = np.array(last_cross_mean)
     print last_cross_mean
-    file_name_lastcross_mean = "rand_MultinomialNB_alpha=1.0/rand_Mean_Lastcross"
+    file_name_lastcross_mean = string + "/rand_Mean_Lastcross"
     np.savetxt("%s.txt" %file_name_lastcross_mean, last_cross_mean.astype(int), delimiter=",",fmt='%i')
