@@ -4,26 +4,28 @@ from scipy.stats import itemfreq
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter,LogLocator
+from matplotlib.ticker import MultipleLocator, FormatStrFormatter,LogLocator,LinearLocator
 
 
 if __name__ == "__main__":
 
-    folder_list = ['./rand_LogisticRegression_C=0.1/','./rand_LogisticRegression_C=1.0/',
-                   './rand_DecisionTreeClassifier_max_depth=8/','./rand_DecisionTreeClassifier_max_depth=32/']
-    label = ['0.1','1.0','Max_Depth=8','Max_Depth=']
+    row_file = 10000
+    title = "letterO_rand_MultinomialNB"
+    folder_list = ['./rand_MultinomialNB_alpha=0.1/','./rand_MultinomialNB_alpha=1.0/',
+                   './rand_MultinomialNB_alpha=10.0/','./rand_MultinomialNB_alpha=100.0/']
+    label = ['alpha=0.1','alpha=1.0','alpha=10.0','alpha=100.0']
     numberoflines = len(folder_list)
 
     fig = plt.figure(figsize=(60,15))
     ax = fig.add_subplot(111)
-    plt.suptitle("rand_LogisticRegression",fontsize=50)
+    plt.suptitle(title,fontsize=50)
     plt.gca().set_color_cycle(['red', 'green', 'blue', 'black'])
 
     for i in range(numberoflines):
         path = folder_list[i] + 'rand_Mean_Lastcross.txt'
         frequency = []
         with open(path) as csv:
-            for j in range(10320):
+            for j in range(row_file):
                 line = csv.readline()
                 int_list = map(float, line.split(','))
                 frequency.append(int_list[0])
@@ -35,14 +37,17 @@ if __name__ == "__main__":
 
         for j in range(row):
             listX.append(temp[j][0])
-            listPercentage.append(temp[j][1]/10320.)
-
+            listPercentage.append(temp[j][1]/row_file)
+        print listPercentage[0]
         pc = np.cumsum(listPercentage)
+        print pc[0]
         plt.plot(listX,pc, label = label[i])
 
     # plot
-
-
+    # Y_major_ticks = np.arange(0, 1.5, 0.1)
+    # Y_minor_ticks = np.arange(0, 1.5, 0.02)
+    # ax.set_yticks(Y_major_ticks)
+    # ax.set_yticks(Y_minor_ticks, minor=True)
 
     ax.xaxis.set_major_locator(MultipleLocator(50))
     ax.xaxis.set_major_formatter(FormatStrFormatter('%d'))
@@ -58,4 +63,5 @@ if __name__ == "__main__":
 
     plt.legend(loc = 4,handleheight = 4, fontsize = 25, ncol = numberoflines)
 
-    plt.savefig("rand_DecisionTreeClassifier.png")
+    nameofpic = title + '.png'
+    plt.savefig(nameofpic)
