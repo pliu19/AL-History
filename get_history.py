@@ -12,22 +12,22 @@ from collections import defaultdict
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
 from strategies import RandomStrategy, UncStrategy, BootstrapFromEach, QBCStrategy
 
 class LearningCurve(object):
     """Class - run multiple trials or run trials one at a time"""
-    def run_trials(self, X_pool, y_pool, X_test, y_test, al_strategy, classifier_name, bootstrap_size,  step_size, budget, num_trials, path,lengthoftxt):
+    def run_trials(self, X_pool, y_pool, X_test, y_test, al_strategy, classifier_name, bootstrap_size,  step_size, budget, num_trials, path,lengthoftxt=None):
 
         self.history_probas = { }
         self.history_preditcion = { }
 
         for t in range(num_trials):
             print "trial", t+1
-            self._run_a_single_trial(X_pool, y_pool, X_test, y_test,al_strategy, classifier_name, bootstrap_size,  step_size, budget, t,path,lengthoftxt)
+            self._run_a_single_trial(X_pool, y_pool, X_test, y_test,al_strategy, classifier_name, bootstrap_size,  step_size, budget, t,path, lengthoftxt=None)
 
-
-
-    def _run_a_single_trial(self, X_pool, y_pool, X_test, y_test, al_strategy, classifier_name, bootstrap_size,  step_size, budget, t, folderpath,lengthoftxt):
+    def _run_a_single_trial(self, X_pool, y_pool, X_test, y_test, al_strategy, classifier_name, bootstrap_size,  step_size, budget, t, folderpath,lengthoftxt=None):
         """Helper method for running multiple trials."""
 
         rows = len(y_test)
@@ -59,6 +59,8 @@ class LearningCurve(object):
 
         #Loop for prediction
         ite = 0
+        indicesInTrail = []
+        accuracyInTrail = []
         while len(trainIndices) < budget and len(pool) >= step_size:
             if not bootstrapped:
                 boot_s = BootstrapFromEach(t)
@@ -67,24 +69,29 @@ class LearningCurve(object):
             else:
                 newIndices = active_s.chooseNext(pool, X_pool, model, k=step_size, current_train_indices = trainIndices, current_train_y = y_pool[trainIndices])
 
+            indicesInTrail.append(newIndices)
             pool.difference_update(newIndices)
             trainIndices.extend(newIndices)
             model = eval(classifier_name)
-            model.fit(X_pool[trainIndices], y_pool[trainIndices])
 
+            model.fit(X_pool[trainIndices], y_pool[trainIndices])
             # Prediction
             y_probas = model.predict_proba(X_test)
             y_pred = model.predict(X_test)
 
+            tempaccuracy = accuracy_score(y_test,y_pred)
+            accuracyInTrail.append(tempaccuracy)
             # Save the prediction and probas
-            # for num in range(rows):
-            #     result_prediction[num][ite] = y_pred[num]
-            #     result_probas[num][ite] = y_probas[num][0]
 
             result_prediction[:,ite] = y_pred
             result_probas[:,ite] = y_probas[:,0]
 
             ite = ite + 1
+
+        file_name_indices = folderpath + "Indices_record_Trial" + "_" + str(t+1)
+        write_indices(file_name_indices,indicesInTrail)
+        file_name_accuracy = folderpath +"Accuracy_record_Trial" + "_" +str(t+1)
+        write_indices(file_name_accuracy,accuracyInTrail)
 
         accu = accuracy_score(y_test, result_prediction[:,column-2])
         print "This is the %r-th trial, the accuracy is %r" %(str(t+1),accu)
@@ -98,10 +105,10 @@ class LearningCurve(object):
 
         file_name_prediction = folderpath + args.strategies + "_" + "Trial" + "_" + str(t+1) + "_prediction"
         np.savetxt("%s.csv" %file_name_prediction, result_prediction, delimiter=",")
-        # crosstable = table_of_cross(result_prediction,lengthoftxt)
-        # file_name_crosstable = folderpath + args.strategies + "_" + "Trial" + "_" + str(t+1) + "_crosstable"
-        # np.savetxt("%s.csv" %file_name_crosstable, crosstable, delimiter=",")
 
+def write_indices(path,array):
+    array = np.asarray(array)
+    np.savetxt("%s.csv" %path, array, delimiter=",")
 
 def load_imdb(path, shuffle=True, random_state=42, \
               vectorizer = CountVectorizer(min_df=5, max_df=1.0, binary=True)):
@@ -257,38 +264,36 @@ def get_classifier(classifier, argus):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
+
     parser.add_argument('-path', help='The path to the content file.')
 
-    parser.add_argument('-classifier',choices=['LogisticRegression','MultinomialNB','svm'], default='MultinomialNB',
+    parser.add_argument('-classifier',choices=['LogisticRegression','MultinomialNB','SVC','DecisionTreeClassifier'], default='LogisticRegression',
                         help='The underlying classifier.')
-    parser.add_argument("-a","--arguments", default='alpha=1.0',
+    parser.add_argument("-a","--arguments", default='C=1.0',
                         help="Represents the arguments that will be passed to the classifier (default: '').")
+
     parser.add_argument("-nt", "--num_trials", type=int, default=10, help="Number of trials (default: 10).")
 
-    parser.add_argument('-num_folds', type=int, default=10, help='The number of folds.')
-
-    # parser.add_argument("-f", '--file', type=str, default="aaa.aaa",
-    #                     help='This feature represents the name that will be written with the result. '
-    #                          'If it is left blank, the file will not be written (default: None ).')
-    parser.add_argument("-st", "--strategies", choices=['qbc', 'rand','unc'], nargs='*',default='rand',
+    parser.add_argument("-st", "--strategies", choices=['qbc', 'rand','unc'], nargs='*',default='unc',
                         help="Represent a list of strategies for choosing next samples (default: unc).")
 
     parser.add_argument("-bs", '--bootstrap', default=10, type=int,
                         help='Sets the Boot strap (default: 10).')
-    parser.add_argument("-b", '--budget', default=10000, type=int,
+    parser.add_argument("-b", '--budget', default=500, type=int,
                         help='Sets the budget (default: 2000).')
     parser.add_argument("-sz", '--stepsize', default=10, type=int,
                         help='Sets the step size (default: 10).')
-    # parser.add_argument("-sp", '--subpool', default=None, type=int,
-    #                     help='Sets the sub pool size (default: None).')
+
     args = parser.parse_args()
 
     vect = CountVectorizer(min_df=5, max_df=1.0, binary=True, ngram_range=(1,1))
     X_tr, y_tr, X_te, y_te, indices = load_imdb("C:\\Users\\Ping\\Desktop\\aclImdb", vectorizer=vect)
-    lengthoftxt = get_lengthoftext(indices,"C:\\Users\\Ping\\Desktop\\aclImdb")
+    # lengthoftxt = get_lengthoftext(indices,"C:\\Users\\Ping\\Desktop\\aclImdb")
 
     # Directly use the classifier and calculate the accuracy
     combine_classifier = get_classifier(args.classifier, args.arguments)
+
+
     model = eval(combine_classifier)
     model.fit(X_tr,y_tr)
     direct = model.predict(X_te)
@@ -300,25 +305,8 @@ if __name__ == '__main__':
     os.mkdir(folderpath)
 
     learning_api = LearningCurve()
-    learning_api.run_trials(X_tr, y_tr, X_te, y_te, args.strategies, combine_classifier, args.bootstrap, args.stepsize, args.budget, args.num_trials,folderpath,lengthoftxt)
+    learning_api.run_trials(X_tr, y_tr, X_te, y_te, args.strategies, combine_classifier, args.bootstrap, args.stepsize, args.budget, args.num_trials, folderpath)
 
-    # column_file = (args.budget - args.bootstrap) / args.stepsize + 2
-    # row_file = len(y_te)
-    # mean_probal = np.zeros(shape=(row_file,column_file))
-    # for i in range(args.num_trials):
-
-#################################################################################
-    # Get the mean of probability and cross table
-    # row, column = his_probal[0].shape
-    # mean_probal = np.zeros(shape=(row, column))
-    # for i in his_probal.keys():
-    #     mean_probal += his_probal[i]
-    #
-    # mean_probal = mean_probal/10.
-    # file_name_mean_prediction = args.strategies + "_" + "Mean" + "_prediction"
-    # np.savetxt("%s.csv" %file_name_mean_prediction, mean_probal, delimiter=",")
-    # file_name_mean_crosstable = args.strategies + "_Mean" + "_crosstable"
-    # np.savetxt("%s.txt" %file_name_mean_crosstable, crosstable.astype(int), delimiter=",",fmt='%i')
 
 
 
