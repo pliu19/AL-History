@@ -1,7 +1,7 @@
 __author__ = 'Ping'
 import numpy as np
 
-def Lastcross(array):
+def Lastcross(array,lengthoftest):
 
     last_cross = []
     for j in range(lengthoftest):
