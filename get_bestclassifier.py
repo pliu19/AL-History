@@ -3,9 +3,7 @@ import numpy as np
 
 
 if __name__ == "__main__":
-    # a = np.array([3,4,1,10,5])
-    # print a
-    # print np.argmax(a)
+
     trials = 10
     numbers = 6
     iteration = 100
@@ -25,5 +23,6 @@ if __name__ == "__main__":
         for k in range(iteration):
             a = temp[k]
             accuracy.append(np.argmax(a))
+
         file_index_classifier = "./unc_LogisticRegression/Index_Claasifier_Trial" + str(i+1)
-        np.savetxt("%s.txt" %file_index_classifier, accuracy, delimiter=",")
+        np.savetxt("%s.txt" %file_index_classifier, accuracy, delimiter=",",fmt='%i')
