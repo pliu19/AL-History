@@ -307,14 +307,3 @@ if __name__ == '__main__':
     learning_api = LearningCurve()
     learning_api.run_trials(X_tr, y_tr, X_te, y_te, args.strategies, combine_classifier, args.bootstrap, args.stepsize, args.budget, args.num_trials, folderpath)
 
-
-
-
-
-
-
-
-
-
-
-

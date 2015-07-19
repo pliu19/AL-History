@@ -122,7 +122,6 @@ class UncStrategy(BaseStrategy):
 
         **Returns**
         * [candidates[i] for i in uis[:k]]"""
-
         if not self.sub_pool:
             rand_indices = self.randgen.permutation(len(pool))
             array_pool = np.array(list(pool))
