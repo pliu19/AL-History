@@ -21,7 +21,7 @@ if __name__ == '__main__':
                 base = 0
                 results = []
 
-                ax = plt.subplot(10, 3, pltcount)
+                ax = plt.subplot(10, 15, pltcount)
                 ax.set_title(c1+'vs'+c2)
                 ax.set_yticks(np.linspace(0,1,7))
                 ax.xaxis.set_major_locator(plt.AutoLocator())
