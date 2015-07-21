@@ -4,6 +4,7 @@ import numpy as np
 import scipy.sparse as ss
 import argparse
 import os
+import sys
 from time import time
 import matplotlib as plt
 from sklearn.metrics import accuracy_score
@@ -20,8 +21,8 @@ class LearningCurve(object):
     """Class - run multiple trials or run trials one at a time"""
     def run_trials(self, X_pool, y_pool, X_test, y_test, al_strategy, classifier_name, bootstrap_size,  step_size, budget, num_trials, path,lengthoftxt=None):
 
-        self.history_probas = { }
-        self.history_preditcion = { }
+        self.history_probas = {  }
+        self.history_preditcion = {  }
 
         for t in range(num_trials):
             print "trial", t+1
@@ -75,6 +76,7 @@ class LearningCurve(object):
             model = eval(classifier_name)
 
             model.fit(X_pool[trainIndices], y_pool[trainIndices])
+
             # Prediction
             y_probas = model.predict_proba(X_test)
             y_pred = model.predict(X_test)
@@ -89,9 +91,9 @@ class LearningCurve(object):
             ite = ite + 1
 
         file_name_indices = folderpath + "Indices_record_Trial" + "_" + str(t+1)
-        write_indices(file_name_indices,indicesInTrail)
+        write_integer(file_name_indices,indicesInTrail)
         file_name_accuracy = folderpath +"Accuracy_record_Trial" + "_" +str(t+1)
-        write_indices(file_name_accuracy,accuracyInTrail)
+        write_float(file_name_accuracy,accuracyInTrail)
 
         accu = accuracy_score(y_test, result_prediction[:,column-2])
         print "This is the %r-th trial, the accuracy is %r" %(str(t+1),accu)
@@ -104,11 +106,36 @@ class LearningCurve(object):
         np.savetxt("%s.csv" %file_name_proba, result_probas, delimiter=",")
 
         file_name_prediction = folderpath + args.strategies + "_" + "Trial" + "_" + str(t+1) + "_prediction"
-        np.savetxt("%s.csv" %file_name_prediction, result_prediction, delimiter=",")
+        np.savetxt("%s.csv" %file_name_prediction, result_prediction, delimiter=",", fmt='%i')
 
-def write_indices(path,array):
+    def get_mean_cross(self, folder, strategy, row_file, column_file, trial):
+        #row_file is the # of testdata, column_file is the # of iteration + 1
+
+        mean_probal = np.zeros(shape=(row_file,column_file))
+        for i in range(trial):
+            path = folder + strategy +"_Trial_" + str(i+1)+ "_proba.csv"
+            temp = np.loadtxt (open(path,"rb"), delimiter=",")
+            mean_probal += temp
+
+        mean_probal = mean_probal / float(trial)
+
+        file_name_mean_prediction = folder + strategy + "_Mean_proba"
+        np.savetxt("%s.csv" %file_name_mean_prediction, mean_probal, delimiter=",")
+
+        last_cross_mean = Lastcross(mean_probal,row_file)
+        last_cross_mean = np.array(last_cross_mean)
+
+        file_name_lastcross_mean = folder + strategy + "_Mean_Lastcross"
+        np.savetxt("%s.txt" %file_name_lastcross_mean, last_cross_mean.astype(int), delimiter=",",fmt='%i')
+
+
+def write_integer(path,array):
     array = np.asarray(array)
-    np.savetxt("%s.csv" %path, array, delimiter=",")
+    np.savetxt("%s.txt" %path, array.astype(int), delimiter=",",fmt='%i')
+
+def write_float(path,array):
+    array = np.asarray(array)
+    np.savetxt("%s.txt" %path, array, delimiter=",",fmt='%10.10f')
 
 def load_imdb(path, shuffle=True, random_state=42, \
               vectorizer = CountVectorizer(min_df=5, max_df=1.0, binary=True)):
@@ -174,7 +201,6 @@ def load_imdb(path, shuffle=True, random_state=42, \
     t0 = time()
 
     X_test = vectorizer.transform(test_corpus)
-    # print type(X_test)
 
     duration = time() - t0
     print("done in %fs" % (duration))
@@ -259,17 +285,43 @@ def get_classifier(classifier, argus):
     result = classifier + '(' + argus + ')'
     return result
 
+def Lastcross(array,lengthoftest):
+
+    last_cross = []
+    for j in range(lengthoftest):
+        temp = array[j]
+
+        if temp[0]>0.5:
+            lastpred = 0
+        else:
+            lastpred = 1
+
+        length = len(temp)
+        lastcross = 0
+        count=0
+        for i in range(length-1):
+            if temp[i]>0.5:
+                flag = 0
+            else:
+                flag = 1
+            if flag != lastpred:
+                count += 1
+                lastcross = i
+            lastpred = flag
+        last_cross.append(lastcross)
+
+    return last_cross
 
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-path', help='The path to the content file.')
+    parser.add_argument('-path', default = "C:\\Users\\Ping\\Desktop\\aclImdb", help='The path to the content file.')
 
-    parser.add_argument('-classifier',choices=['LogisticRegression','MultinomialNB','SVC','DecisionTreeClassifier'], default='LogisticRegression',
+    parser.add_argument('-classifier',choices=['LogisticRegression','MultinomialNB','SVC','DecisionTreeClassifier'], default='MultinomialNB',
                         help='The underlying classifier.')
-    parser.add_argument("-a","--arguments", default='C=1.0',
+    parser.add_argument("-a","--arguments", default='alpha=1000.0',
                         help="Represents the arguments that will be passed to the classifier (default: '').")
 
     parser.add_argument("-nt", "--num_trials", type=int, default=10, help="Number of trials (default: 10).")
@@ -279,31 +331,44 @@ if __name__ == '__main__':
 
     parser.add_argument("-bs", '--bootstrap', default=10, type=int,
                         help='Sets the Boot strap (default: 10).')
-    parser.add_argument("-b", '--budget', default=500, type=int,
+    parser.add_argument("-b", '--budget', default=1000, type=int,
                         help='Sets the budget (default: 2000).')
     parser.add_argument("-sz", '--stepsize', default=10, type=int,
                         help='Sets the step size (default: 10).')
 
     args = parser.parse_args()
 
-    vect = CountVectorizer(min_df=5, max_df=1.0, binary=True, ngram_range=(1,1))
-    X_tr, y_tr, X_te, y_te, indices = load_imdb("C:\\Users\\Ping\\Desktop\\aclImdb", vectorizer=vect)
+    print "################################################################"
+    print "The arguments of this test:"
+    print "     Classifier: %s, %s" %(args.classifier, args.arguments)
+    print "     Strategy: %s " % args.strategies
+    print "     budget: %s    bootstrap: %s    stepsize: %s" %(args.budget, args.bootstrap, args.stepsize)
+    print "################################################################"
+
+    vect = CountVectorizer(min_df=5, max_df=1.0, binary=True, ngram_range=(1, 1))
+    X_tr, y_tr, X_te, y_te, indices = load_imdb(args.path, vectorizer=vect)
     # lengthoftxt = get_lengthoftext(indices,"C:\\Users\\Ping\\Desktop\\aclImdb")
 
     # Directly use the classifier and calculate the accuracy
+
     combine_classifier = get_classifier(args.classifier, args.arguments)
 
-
     model = eval(combine_classifier)
-    model.fit(X_tr,y_tr)
+    model.fit(X_tr, y_tr)
     direct = model.predict(X_te)
-    directaccuracy = accuracy_score(y_te,direct)
+    directaccuracy = accuracy_score(y_te, direct)
     print "Directly use the classifier, the accuracy is %r" %directaccuracy
 
     # Use the Active Learning
     folderpath = './' +args.strategies + '_' + args.classifier + '_' + args.arguments + '/'
-    os.mkdir(folderpath)
+
+    if not os.path.exists(folderpath):
+        os.mkdir(folderpath)
 
     learning_api = LearningCurve()
     learning_api.run_trials(X_tr, y_tr, X_te, y_te, args.strategies, combine_classifier, args.bootstrap, args.stepsize, args.budget, args.num_trials, folderpath)
+
+    row = len(y_te)
+    column = (args.budget - args.bootstrap)/ args.stepsize + 2
+    learning_api.get_mean_cross(folderpath,args.strategies, row, column, args.num_trials)
 
