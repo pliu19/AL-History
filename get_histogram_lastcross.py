@@ -8,28 +8,27 @@ from matplotlib.ticker import FuncFormatter
 if __name__ == "__main__":
 
     frequency = []
-    with open("./rand_LogisticRegression_C=0.1/rand_Trial_1_crosstable.txt") as csv:
+
+    with open("./rand_LogisticRegression_C=0.1/rand_Mean_Lastcross.txt") as csv:
         for j in range(25000):
             line = csv.readline()
-            int_list = map(float, line.split(','))
-            # item = line.split(',')
-            # int_list = [int(i) for i in item]
-            frequency.append(int_list[1])
+            print line
+            frequency.append(int(line))
 
     temp = itemfreq(frequency)
+    print temp
+    print temp.shape
     listX = []
     listFrequency = []
     listPercentage = []
     row, column = temp.shape
     column = column + 1
     newarray = np.zeros(shape=(row, column))
+
     for i in range(row):
         listX.append(temp[i][0])
         listFrequency.append(temp[i][1])
         listPercentage.append(temp[i][1]/25000.)
-        print listPercentage[i]
-
-    print listFrequency
 
     fig = plt.figure(figsize=(9,12))
     ax1 = fig.add_subplot(311)
@@ -48,6 +47,5 @@ if __name__ == "__main__":
     ax3 = fig.add_subplot(313)
     ax3.hist(frequency,ind,alpha=0.8, weights=np.zeros_like(frequency) + 1. / frequency.size,cumulative=True)
     ax3.set_title("The percentage of lastcross - Cumulative")
-    # plt.show()
 
-    plt.savefig("foo.png")
+    plt.savefig("./rand_LogisticRegression_C=0.1/foo.png")
