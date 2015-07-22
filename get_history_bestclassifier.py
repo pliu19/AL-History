@@ -26,10 +26,10 @@ class LearningCurve(object):
 
     def _run_a_single_trial(self, X_pool, y_pool, X_test, y_test, al_strategy, classifier_name, bootstrap_size,  step_size, budget, t, folderpath,lengthoftxt=None):
         """Helper method for running multiple trials."""
-        file_name_parameter = "./unc_LogisticRegression/Index_Claasifier_Trial" + str(t + 1) + ".txt"
+        file_name_parameter = "./unc_MultinomialNB/Index_Claasifier_Trial" + str(t + 1) + ".txt"
         parameters = np.loadtxt(open(file_name_parameter,"rb"))
 
-        parameterslist = ["C=0.01","C=0.1","C=1.0","C=10.0","C=100.0","C=1000.0"]
+        parameterslist = ["alpha=0.01","alpha=0.1","alpha=1.0","alpha=10.0","alpha=100.0","alpha=1000.0"]
 
         rows = len(y_test)
         column = int(budget/step_size) + 1
@@ -65,8 +65,6 @@ class LearningCurve(object):
 
         while len(trainIndices) < budget and len(pool) >= step_size:
 
-
-
             if not bootstrapped:
                 boot_s = BootstrapFromEach(t)
                 newIndices = boot_s.bootstrap(pool, y=y_pool, k=bootstrap_size)
@@ -98,9 +96,9 @@ class LearningCurve(object):
             ite = ite + 1
 
         file_name_indices = folderpath + "Indices_record_Trial" + "_" + str(t+1)
-        write_indices(file_name_indices,indicesInTrail)
+        write_integer(file_name_indices,indicesInTrail)
         file_name_accuracy = folderpath +"Accuracy_record_Trial" + "_" +str(t+1)
-        write_indices(file_name_accuracy,accuracyInTrail)
+        write_float(file_name_accuracy,accuracyInTrail)
 
         accu = accuracy_score(y_test, result_prediction[:,column-2])
         print "This is the %r-th trial, the accuracy is %r" %(str(t+1),accu)
@@ -115,9 +113,13 @@ class LearningCurve(object):
         file_name_prediction = folderpath + args.strategies + "_" + "Trial" + "_" + str(t+1) + "_prediction"
         np.savetxt("%s.csv" %file_name_prediction, result_prediction, delimiter=",")
 
-def write_indices(path,array):
+def write_integer(path,array):
     array = np.asarray(array)
-    np.savetxt("%s.csv" %path, array, delimiter=",")
+    np.savetxt("%s.txt" %path, array.astype(int), delimiter=",",fmt='%i')
+
+def write_float(path,array):
+    array = np.asarray(array)
+    np.savetxt("%s.txt" %path, array, delimiter=",",fmt='%10.10f')
 
 def load_imdb(path, shuffle=True, random_state=42, \
               vectorizer = CountVectorizer(min_df=5, max_df=1.0, binary=True)):
@@ -227,10 +229,8 @@ if __name__ == '__main__':
 
     parser.add_argument('-path', help='The path to the content file.')
 
-    parser.add_argument('-classifier',choices=['LogisticRegression','MultinomialNB','SVC','DecisionTreeClassifier'], default='LogisticRegression',
+    parser.add_argument('-classifier',choices=['LogisticRegression','MultinomialNB','SVC','DecisionTreeClassifier'], default='MultinomialNB',
                         help='The underlying classifier.')
-    # parser.add_argument("-a","--arguments", default='alpha=1000.0',
-    #                     help="Represents the arguments that will be passed to the classifier (default: '').")
 
     parser.add_argument("-nt", "--num_trials", type=int, default=10, help="Number of trials (default: 10).")
 
@@ -248,22 +248,12 @@ if __name__ == '__main__':
 
     vect = CountVectorizer(min_df=5, max_df=1.0, binary=True, ngram_range=(1,1))
     X_tr, y_tr, X_te, y_te, indices = load_imdb("C:\\Users\\Ping\\Desktop\\aclImdb", vectorizer=vect)
-    # lengthoftxt = get_lengthoftext(indices,"C:\\Users\\Ping\\Desktop\\aclImdb")
-
-    # Directly use the classifier and calculate the accuracy
-
-    # combine_classifier = get_classifier(args.classifier, args.arguments)
-
-
-    # model = eval(combine_classifier)
-    # model.fit(X_tr,y_tr)
-    # direct = model.predict(X_te)
-    # directaccuracy = accuracy_score(y_te,direct)
-    # print "Directly use the classifier, the accuracy is %r" %directaccuracy
 
     # Use the Active Learning
     folderpath = './' +args.strategies + '_' + args.classifier + '_BestClassifier/'
-    os.mkdir(folderpath)
+
+    if not os.path.exists(folderpath):
+        os.mkdir(folderpath)
 
     learning_api = LearningCurve()
     learning_api.run_trials(X_tr, y_tr, X_te, y_te, args.strategies, args.classifier, args.bootstrap, args.stepsize, args.budget, args.num_trials, folderpath)
