@@ -10,7 +10,7 @@ from matplotlib.ticker import MultipleLocator, FormatStrFormatter,LogLocator,Lin
 if __name__ == "__main__":
 
     row_file = 10000
-    title = "letterO_rand_MultinomialNB"
+    title = "rand_MultinomialNB"
     folder_list = ['./rand_MultinomialNB_alpha=0.1/','./rand_MultinomialNB_alpha=1.0/',
                    './rand_MultinomialNB_alpha=10.0/','./rand_MultinomialNB_alpha=100.0/']
     label = ['alpha=0.1','alpha=1.0','alpha=10.0','alpha=100.0']
@@ -19,7 +19,8 @@ if __name__ == "__main__":
     fig = plt.figure(figsize=(60,15))
     ax = fig.add_subplot(111)
     plt.suptitle(title,fontsize=50)
-    plt.gca().set_color_cycle(['red', 'green', 'blue', 'black'])
+
+    # plt.gca().set_color_cycle(['red', 'green', 'blue', 'black'])
 
     for i in range(numberoflines):
         path = folder_list[i] + 'rand_Mean_Lastcross.txt'
