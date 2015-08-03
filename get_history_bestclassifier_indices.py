@@ -11,7 +11,7 @@ from sklearn import metrics
 from collections import defaultdict
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import MultinomialNB,BernoulliNB
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from strategies import RandomStrategy, UncStrategy, BootstrapFromEach, QBCStrategy
@@ -24,12 +24,12 @@ class LearningCurve(object):
 
     def _get_indices(self, trial):
 
-        indexofparameter = np.loadtxt(open("./unc_MultinomialNB/Index_Claasifier_Trial" + str(trial+1) + ".txt","rb"))
-        list1 = ["alpha=0.01","alpha=0.1","alpha=1.0","alpha=10.0","alpha=100.0","alpha=1000.0"]
+        indexofparameter = np.loadtxt(open("./unc_LogisticRegression/Index_Claasifier_Trial" + str(trial+1) + ".txt","rb"))
+        list1 = ["C=0.01","C=0.1","C=1.0","C=10.0","C=100.0","C=1000.0"]
         list2 = []
 
         for i in range(100):
-            initial = "./unc_MultinomialNB_"
+            initial = "./unc_LogisticRegression_"
             end = list1[int(indexofparameter[i])]
             filename = initial + end + "/Indices_record_Trial_" + str(trial+1) +".txt"
 
@@ -48,10 +48,10 @@ class LearningCurve(object):
 
         list_indices = self._get_indices(t)
 
-        file_name_parameter = "./unc_MultinomialNB/Index_Claasifier_Trial" + str(t + 1) + ".txt"
+        file_name_parameter = "./unc_BernoulliNB/Index_Claasifier_Trial" + str(t + 1) + ".txt"
         parameters = np.loadtxt(open(file_name_parameter,"rb"))
 
-        parameterslist = ["alpha=0.01","alpha=0.1","alpha=1.0","alpha=10.0","alpha=100.0","alpha=1000.0"]
+        parameterslist = ["alpha=0.01","alpha=0.1","alpha=1.0","alpha=10.0","alpha=100.0"]
 
         rows = len(y_test)
         column = int(budget/step_size) + 1
@@ -241,7 +241,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-path', help='The path to the content file.')
 
-    parser.add_argument('-classifier',choices=['LogisticRegression','MultinomialNB','SVC','DecisionTreeClassifier'], default='MultinomialNB',
+    parser.add_argument('-classifier',choices=['LogisticRegression','MultinomialNB','SVC','DecisionTreeClassifier'], default='BernoulliNB',
                         help='The underlying classifier.')
 
     parser.add_argument("-nt", "--num_trials", type=int, default=10, help="Number of trials (default: 10).")

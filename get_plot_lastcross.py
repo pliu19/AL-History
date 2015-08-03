@@ -9,11 +9,12 @@ from matplotlib.ticker import MultipleLocator, FormatStrFormatter,LogLocator,Lin
 
 if __name__ == "__main__":
 
-    row_file = 10000
-    title = "rand_MultinomialNB"
-    folder_list = ['./rand_MultinomialNB_alpha=0.1/','./rand_MultinomialNB_alpha=1.0/',
-                   './rand_MultinomialNB_alpha=10.0/','./rand_MultinomialNB_alpha=100.0/']
-    label = ['alpha=0.1','alpha=1.0','alpha=10.0','alpha=100.0']
+    row_file = 25000
+    title = "unc_MultinomialNB"
+    folder_list = ["./unc_MultinomialNB_alpha=0.01/","./unc_MultinomialNB_alpha=0.1/","./unc_MultinomialNB_alpha=1.0/",
+                      "./unc_MultinomialNB_alpha=10.0/","./unc_MultinomialNB_alpha=100.0/","./unc_MultinomialNB_alpha=1000.0/"]
+    label = ["alpha=0.01","alpha=0.1","alpha=1.0","alpha=10.0","alpha=100.0","alpha=1000.0"]
+
     numberoflines = len(folder_list)
 
     fig = plt.figure(figsize=(60,15))
@@ -23,7 +24,7 @@ if __name__ == "__main__":
     # plt.gca().set_color_cycle(['red', 'green', 'blue', 'black'])
 
     for i in range(numberoflines):
-        path = folder_list[i] + 'rand_Mean_Lastcross.txt'
+        path = folder_list[i] + 'unc_Mean_Lastcross.txt'
         frequency = []
         with open(path) as csv:
             for j in range(row_file):
@@ -39,7 +40,7 @@ if __name__ == "__main__":
         for j in range(row):
             listX.append(temp[j][0])
             listPercentage.append(temp[j][1]/row_file)
-        print listPercentage[0]
+
         pc = np.cumsum(listPercentage)
         print pc[0]
         plt.plot(listX,pc, label = label[i])

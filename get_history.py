@@ -4,6 +4,7 @@ import numpy as np
 import scipy.sparse as ss
 import argparse
 import os
+import re
 import sys
 from time import time
 import matplotlib as plt
@@ -12,7 +13,7 @@ from sklearn import metrics
 from collections import defaultdict
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import MultinomialNB, BernoulliNB
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from strategies import RandomStrategy, UncStrategy, BootstrapFromEach, QBCStrategy
@@ -102,10 +103,10 @@ class LearningCurve(object):
             result_prediction[num][ite] = y_test[num]
             result_probas[num][ite] = y_test[num]
 
-        file_name_proba = folderpath + args.strategies + "_" + "Trial" + "_" + str(t+1) + "_proba"
+        file_name_proba = folderpath + al_strategy + "_" + "Trial" + "_" + str(t+1) + "_proba"
         np.savetxt("%s.csv" %file_name_proba, result_probas, delimiter=",")
 
-        file_name_prediction = folderpath + args.strategies + "_" + "Trial" + "_" + str(t+1) + "_prediction"
+        file_name_prediction = folderpath + al_strategys + "_" + "Trial" + "_" + str(t+1) + "_prediction"
         np.savetxt("%s.csv" %file_name_prediction, result_prediction, delimiter=",", fmt='%i')
 
     def get_mean_cross(self, folder, strategy, row_file, column_file, trial):
@@ -231,7 +232,6 @@ def load_imdb(path, shuffle=True, random_state=42, \
 
     return X_train, y_train, X_test, y_test, indices
 
-
 def get_lengthoftext(indices,path):
     test_neg_files = glob.glob("C:\\Users\\Ping\\Desktop\\aclImdb\\test\\neg\\*.txt")
     test_pos_files = glob.glob("C:\\Users\\Ping\\Desktop\\aclImdb\\test\\pos\\*.txt")
@@ -281,7 +281,6 @@ def table_of_cross(array, lengthoftxt):
     return output
 
 def get_classifier(classifier, argus):
-
     result = classifier + '(' + argus + ')'
     return result
 
@@ -319,9 +318,9 @@ if __name__ == '__main__':
 
     parser.add_argument('-path', default = "C:\\Users\\Ping\\Desktop\\aclImdb", help='The path to the content file.')
 
-    parser.add_argument('-classifier',choices=['LogisticRegression','MultinomialNB','SVC','DecisionTreeClassifier'], default='MultinomialNB',
+    parser.add_argument('-classifier',choices=['LogisticRegression','MultinomialNB','SVC','DecisionTreeClassifier','BernoulliNB'], default='BernoulliNB',
                         help='The underlying classifier.')
-    parser.add_argument("-a","--arguments", default='alpha=1000.0',
+    parser.add_argument("-a","--arguments", default="alpha = 100.0",
                         help="Represents the arguments that will be passed to the classifier (default: '').")
 
     parser.add_argument("-nt", "--num_trials", type=int, default=10, help="Number of trials (default: 10).")
@@ -361,7 +360,11 @@ if __name__ == '__main__':
 
     # Use the Active Learning
     folderpath = './' +args.strategies + '_' + args.classifier + '_' + args.arguments + '/'
-
+    if args.classifier == 'SVC':
+        arguments = args.arguments.split(',')
+        arguments = '_'.join([i for i in arguments])
+        arguments = re.sub('"', '', arguments)
+        folderpath = './' +args.strategies + '_' + args.classifier + '_' + arguments + '/'
     if not os.path.exists(folderpath):
         os.mkdir(folderpath)
 

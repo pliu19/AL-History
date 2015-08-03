@@ -9,16 +9,21 @@ if __name__ == "__main__":
 
     trial = 10
     ind = np.arange(1,101)
-    folderpath = "./unc_LogisticRegression/"
-    # os.mkdir(folderpath)
-    # ListofFolder = ["./unc_MultinomialNB_alpha=0.01/","./unc_MultinomialNB_alpha=0.1/","./unc_MultinomialNB_alpha=1/",
-    #                 "./unc_MultinomialNB_alpha=10.0/","./unc_MultinomialNB_alpha=100.0/","./unc_MultinomialNB_alpha=1000.0/"]
-    # ListofParameter = ["alpha=0.01","alpha=0.1","alpha=1.0","alpha=10","alpha=100","alpha=1000"]
-    ListofFolder = ["./unc_LogisticRegression_C=0.01/","./unc_LogisticRegression_C=0.1/",
-                    "./unc_LogisticRegression_C=1.0/","./unc_LogisticRegression_C=10.0/",
-                    "./unc_LogisticRegression_C=100.0/","./unc_LogisticRegression_C=1000.0/",
-                    "./unc_LogisticRegression_BestClassifier/"]
-    ListofParameter = ["C=0.01","C=0.1","C=1.0","C=10.0","C=100.0","C=1000.0","BestClassifier"]
+    folderpath = "./unc_BernoulliNB/"
+    if not os.path.exists(folderpath):
+        os.mkdir(folderpath)
+    # ListofFolder = ["./unc_LogisticRegression_C=0.1/","./unc_LogisticRegression_BestClassifier/",
+    #                 "./unc_LogisticRegression_BestClassifier_Indices/","./unc_LogisticRegression_BestClassifier_Random/",
+    #                 "./unc_LogisticRegression_Best2Classifier/"]
+    # ListofParameter = ["C=0.1","BestClassifier", "BestClassifier_Indices","BestClassifier_Random","Best2Classifier"]
+    ListofFolder = ["./unc_BernoulliNB_alpha = 0.01/","./unc_BernoulliNB_alpha = 0.1/","./unc_BernoulliNB_alpha = 1.0/",
+                    "./unc_BernoulliNB_alpha = 10.0/","./unc_BernoulliNB_alpha = 100.0/","./unc_BernoulliNB_BestClassifier/"]
+    ListofParameter = ["alpha=0.01","alpha=0.1","alpha=1","alpha=10","alpha=100","BestClassifier"]
+    # ListofFolder = ["./unc_LogisticRegression_C=0.01/","./unc_LogisticRegression_C=0.1/",
+    #                 "./unc_LogisticRegression_C=1.0/","./unc_LogisticRegression_C=10.0/",
+    #                 "./unc_LogisticRegression_C=100.0/","./unc_LogisticRegression_C=1000.0/",
+    #                 "./unc_LogisticRegression_BestClassifier/"]
+    # ListofParameter = ["C=0.01","C=0.1","C=1.0","C=10.0","C=100.0","C=1000.0","BestClassifier"]
     NumberofExample = len(ListofParameter)
 
     for i in range(NumberofExample):
@@ -28,7 +33,7 @@ if __name__ == "__main__":
         for j in range(trial):
 
             ax = fig.add_subplot(trial,1,j+1)
-            filename = ListofFolder[i]+ "Accuracy_record_Trial_" + str(j+1) + ".csv"
+            filename = ListofFolder[i]+ "Accuracy_record_Trial_" + str(j+1) + ".txt"
             current = np.loadtxt(open(filename,"rb"))
             current = current.tolist()
             plt.plot(ind, current)
@@ -52,7 +57,7 @@ if __name__ == "__main__":
         fig = plt.figure(figsize=(24, 12))
         ax = fig.add_subplot(111)
         for j in range(NumberofExample):
-            filename = ListofFolder[j]+ "Accuracy_record_Trial_" + str(i+1) + ".csv"
+            filename = ListofFolder[j]+ "Accuracy_record_Trial_" + str(i+1) + ".txt"
             current = np.loadtxt(open(filename,"rb"),delimiter=",")
             current = current.tolist()
             plt.plot(ind, current, label = ListofParameter[j])

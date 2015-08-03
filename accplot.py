@@ -7,7 +7,7 @@ if __name__ == '__main__':
     pltcount = 0
     fig = plt.figure(figsize=(240, 30))
     fig.subplots_adjust(hspace = 0.3) #space for titles of subplots
-    pathgen = './unc_LogisticRegression_C='
+    pathgen = './unc_BernoulliNB_alpha = '
 
     for trials in range(10):
         for ii in range(1,7): #For six complexities
@@ -25,8 +25,8 @@ if __name__ == '__main__':
                 ax.set_title(c1+'vs'+c2)
                 ax.set_yticks(np.linspace(0,1,7))
                 ax.xaxis.set_major_locator(plt.AutoLocator())
-                t1=np.loadtxt(open(path1 + "Indices_record_Trial_" + str(trials + 1) + ".csv",'rb'), delimiter=',')
-                t2=np.loadtxt(open(path2 + "Indices_record_Trial_" + str(trials + 1) + ".csv",'rb'), delimiter=',')
+                t1=np.loadtxt(open(path1 + "Indices_record_Trial_" + str(trials + 1) + ".txt",'rb'), delimiter=',')
+                t2=np.loadtxt(open(path2 + "Indices_record_Trial_" + str(trials + 1) + ".txt",'rb'), delimiter=',')
 
                 for i in range(len(t1)):
                     base += len(t1[i])
@@ -36,10 +36,9 @@ if __name__ == '__main__':
                     percent=float(count)/base
                     results.append(percent)
                     if ((i+1)%10==0):
-                        #plt.text(i+1, percent, str(round(percent-1./(i+1),8)))
-                        #comment percentages. Above is difference
+
                         plt.text(i+1, percent, str(round(percent,8)))
                 plt.plot(results)
                 pltcount+=1
-    plt.savefig("1.png")
+    plt.savefig("unc_BernoulliNB_same_instaces.png")
     
