@@ -129,6 +129,9 @@ class LearningCurve(object):
         file_name_lastcross_mean = folder + strategy + "_Mean_Lastcross"
         np.savetxt("%s.txt" %file_name_lastcross_mean, last_cross_mean.astype(int), delimiter=",",fmt='%i')
 
+    def plot_history_proba(self, number):
+        return
+
 
 def write_integer(path,array):
     array = np.asarray(array)
