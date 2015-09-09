@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import csv
 import numpy as np
 
+
 if __name__ == '__main__':
 
     pltcount = 0
@@ -10,21 +11,22 @@ if __name__ == '__main__':
     pathgen = './unc_BernoulliNB_alpha = '
 
     for trials in range(10):
-        for ii in range(1,7): #For six complexities
-            for jj in range(ii+1,7): #C 6 2
+        for ii in range(1,6): #For six complexities
+            for jj in range(ii+1,6): #C 6 2
 
-                c1=str(10000./(10**ii))
-                c2=str(10000./(10**jj))
+                c1=str(1000./(10**ii))
+                c2=str(1000./(10**jj))
                 path1 = pathgen + c1 + '/'
                 path2 = pathgen + c2 + '/'
                 count = 0
                 base = 0
                 results = []
 
-                ax = plt.subplot(10, 15, pltcount)
+                ax = plt.subplot(10, 10, pltcount)
                 ax.set_title(c1+'vs'+c2)
                 ax.set_yticks(np.linspace(0,1,7))
                 ax.xaxis.set_major_locator(plt.AutoLocator())
+
                 t1=np.loadtxt(open(path1 + "Indices_record_Trial_" + str(trials + 1) + ".txt",'rb'), delimiter=',')
                 t2=np.loadtxt(open(path2 + "Indices_record_Trial_" + str(trials + 1) + ".txt",'rb'), delimiter=',')
 

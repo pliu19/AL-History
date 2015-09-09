@@ -251,6 +251,7 @@ def get_classifier(classifier, argus):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
+
     parser.add_argument('-path', help='The path to the content file.')
 
     parser.add_argument('-classifier',choices=['LogisticRegression','MultinomialNB','SVC','DecisionTreeClassifier'], default='SVC',

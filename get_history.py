@@ -37,13 +37,8 @@ class LearningCurve(object):
 
         result_prediction = np.zeros(shape=(rows, column))
         result_probas = np.zeros(shape=(rows, column))
-
-        if len(y_pool) > 10000:
-            rs = np.random.RandomState(t)
-            indices = rs.permutation(len(y_pool))
-            pool = set(indices[:10000])
-        else:
-            pool = set(range(len(y_pool)))
+        # Delete the sup_pool
+        pool = set(range(len(y_pool)))
 
         trainIndices = []
         bootstrapped = False
@@ -106,7 +101,7 @@ class LearningCurve(object):
         file_name_proba = folderpath + al_strategy + "_" + "Trial" + "_" + str(t+1) + "_proba"
         np.savetxt("%s.csv" %file_name_proba, result_probas, delimiter=",")
 
-        file_name_prediction = folderpath + al_strategys + "_" + "Trial" + "_" + str(t+1) + "_prediction"
+        file_name_prediction = folderpath + al_strategy + "_" + "Trial" + "_" + str(t+1) + "_prediction"
         np.savetxt("%s.csv" %file_name_prediction, result_prediction, delimiter=",", fmt='%i')
 
     def get_mean_cross(self, folder, strategy, row_file, column_file, trial):
@@ -363,6 +358,7 @@ if __name__ == '__main__':
 
     # Use the Active Learning
     folderpath = './' +args.strategies + '_' + args.classifier + '_' + args.arguments + '/'
+
     if args.classifier == 'SVC':
         arguments = args.arguments.split(',')
         arguments = '_'.join([i for i in arguments])

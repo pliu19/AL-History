@@ -83,12 +83,7 @@ class BestClassifier():
         result_prediction = np.zeros(shape=(rows, column))
         result_probas = np.zeros(shape=(rows, column))
 
-        if len(y_pool) > 10000:
-            rs = np.random.RandomState(t)
-            indices = rs.permutation(len(y_pool))
-            pool = set(indices[:10000])
-        else:
-            pool = set(range(len(y_pool)))
+        pool = set(range(len(y_pool)))
 
         trainIndices = []
         bootstrapped = False
@@ -214,12 +209,7 @@ class Best2Classifiers(object):
         result_prediction = np.zeros(shape=(rows, column))
         result_probas = np.zeros(shape=(rows, column))
 
-        if len(y_pool) > 10000:
-            rs = np.random.RandomState(t)
-            indices = rs.permutation(len(y_pool))
-            pool = set(indices[:10000])
-        else:
-            pool = set(range(len(y_pool)))
+        pool = set(range(len(y_pool)))
 
         trainIndices = []
         bootstrapped = False
@@ -337,12 +327,7 @@ class BestAndRandom(object):
         result_prediction = np.zeros(shape=(rows, column))
         result_probas = np.zeros(shape=(rows, column))
 
-        if len(y_pool) > 10000:
-            rs = np.random.RandomState(t)
-            indices = rs.permutation(len(y_pool))
-            pool = set(indices[:10000])
-        else:
-            pool = set(range(len(y_pool)))
+        pool = set(range(len(y_pool)))
 
         trainIndices = []
         bootstrapped = False

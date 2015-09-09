@@ -9,12 +9,14 @@ from matplotlib.ticker import MultipleLocator, FormatStrFormatter,LogLocator,Lin
 
 class plot_result(object):
 
-    def __init__(self, folderlist, label, number, strategy, classifier):
+    def __init__(self, folderlist, label, number, strategy, classifier, folder = None):
         self.folderlist = folderlist
         self.label = label
         self.num_test = number
         self.strategy = strategy
         self.classifier = classifier
+
+        self.folderpath = folder
 
         # self.plot_lastcross()
 
@@ -82,8 +84,11 @@ class plot_result(object):
 
         folderpath = "./" + self.strategy + "_" + self.classifier + "/"
 
-        if not os.path.exists(folderpath):
-            os.mkdir(folderpath)
+        if not self.folderpath:
+            self.folderpath = folderpath
+
+        if not os.path.exists(self.folderpath):
+                os.mkdir(self.folderpath)
 
         NumberofExample = len(self.label)
 
@@ -139,15 +144,23 @@ class plot_result(object):
             plt.legend(loc = 4,handleheight = 4, fontsize = 20, ncol = NumberofExample)
 
             if plus_title == None:
-                name = folderpath + "Trial_" + str(i+1) + "_AllLines.png"
+                name = self.folderpath + "Trial_" + str(i+1) + "_AllLines.png"
             else:
-                name = folderpath + "Trial_" + str(i+1) + "_AllLines.png" + plus_title
+                name = self.folderpath + "Trial_" + str(i+1) + "_AllLines" + str(plus_title) +".png"
+                title = "Trial_" + str(i+1) + "_AllLines" + str(plus_title) +".png"
+                ax.set_title(title)
+
+
+
             plt.savefig(name)
 
 if __name__ == '__main__':
 
-    folderlist = ["./unc_BernoulliNB_alpha = 0.01/","./unc_BernoulliNB_alpha = 0.1/","./unc_BernoulliNB_alpha = 1.0/",
-                    "./unc_BernoulliNB_alpha = 10.0/","./unc_BernoulliNB_alpha = 100.0/"]
-    label = ["alpha=0.01","alpha=0.1","alpha=1.0","alpha=10.0","alpha=100.0"]
-    test = plot_result(folderlist, label, 25000, 'unc', 'BernoulliNB')
-    test.plot_accuracy(10,100)
+    folderlist = ['./rand_MultinomialNB_alpha=0.1/', './rand_MultinomialNB_alpha=1.0/',
+                   './rand_MultinomialNB_alpha=10.0/', './rand_MultinomialNB_alpha=100.0/']
+
+    label = ["alpha=0.1","alpha=1.0","alpha=10.0","alpha=100.0"]
+    test = plot_result(folderlist, label, 25000, 'rand', 'MultinomialNB','./')
+    test.plot_lastcross()
+    # test.plot_accuracy(10,100,"_(train_C=1000.0)")
+    # print folderlist

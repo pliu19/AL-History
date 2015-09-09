@@ -21,6 +21,7 @@ if __name__ == '__main__':
                 plt.plot(len(inlist) - 1, true_label, marker="o", markersize=15, alpha=0.3)
                 line = f.readline()
                 count += 1
+
     with open("./rand_LogisticRegression_C=0.1/rand_Mean_proba.csv") as f:
         line = f.readline()
         for j in range(datasets):
