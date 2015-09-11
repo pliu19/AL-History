@@ -3,6 +3,7 @@ import csv
 import argparse
 import numpy as np
 from collections import defaultdict
+from sklearn.preprocessing import scale
 
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.metrics import accuracy_score
@@ -154,7 +155,8 @@ if __name__ == '__main__':
                         help="Number of folds for cross validation. Works only if a single dataset is loaded (default: 10).")
 
     args = parser.parse_args()
-
+    
+    
     print "There are %s datasets in total." % len(args.datalist)
     performances = defaultdict(lambda: [])
 
@@ -163,6 +165,9 @@ if __name__ == '__main__':
 
         path = args.path + data + '.zip'
         X, y = load_data(path, None)
+        
+        # if scale it, use X = scale(X)
+        
         print "     Load data completely"
 
         skf = StratifiedKFold(y, n_folds=args.cv, shuffle=True, random_state=42)
