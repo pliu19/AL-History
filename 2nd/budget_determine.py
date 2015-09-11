@@ -10,6 +10,7 @@ import csv
 from time import time
 import matplotlib as plt
 
+from sklearn.preprocessing import scale
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.metrics import accuracy_score
 from sklearn.datasets import load_svmlight_file
@@ -207,7 +208,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-path', default= 'C:\\Users\\Ping\\Desktop\\nova.zip' ,help='The path to the content file.')
+    parser.add_argument('-path', default= 'C:\\Users\\Ping\\Desktop\\calhousing.zip' ,help='The path to the content file.')
 
     parser.add_argument('-classifier',choices=['LogisticRegression','MultinomialNB','SVC','DecisionTreeClassifier'], default='LogisticRegression',
                         help='The underling classifier.')
@@ -219,6 +220,9 @@ if __name__ == '__main__':
 
     parser.add_argument("-st", "--strategies", choices=['qbc', 'rand','unc'], nargs='*',default='rand',
                         help="Represent a list of strategies for choosing next samples (default: unc).")
+
+    parser.add_argument("-fs", default= True,
+                        help="Using feature scalling or not, it depends on whether the features are binary.")
 
     parser.add_argument("-bs", '--bootstrap', default=10, type=int,
                         help='Sets the Boot strap (default: 10).')
@@ -236,6 +240,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     X, y = load_data(args.path)
+
+    if args.fs:
+        X = scale(X)
 
     skf = StratifiedKFold(y, n_folds=args.cv, shuffle=True, random_state=42)
 
