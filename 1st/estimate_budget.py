@@ -135,12 +135,16 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-path', default = "C:\\Users\\Ping\\Desktop\\",
+    parser.add_argument('-path', default = "./",
                         help='The path to the content file.')
 
-    parser.add_argument('-datalist', default = ['sylva'],
+    parser.add_argument('-datalist', default = ['ibn_sina'],
                         help='Deal with a set of dataset to determine the budget.')
-    #'calhousing','zebra', 'nova', 'orange', 'letterO', 'letterAM', 'kdd99_10perc','ibn_sina'
+    #'calhousing','zebra', 'nova', 'orange', 'letterO', 'letterAM', 'kdd99_10perc','ibn_sina','sylva'
+
+    parser.add_argument('-scale', type=bool, default=True, 
+                        help="If need feature scaling")
+
     parser.add_argument("-c","--classifier", choices=['KNeighborsClassifier', 'LogisticRegression', 'SVC', 'BernoulliNB',
                         'DecisionTreeClassifier', 'RandomForestClassifier', 'AdaBoostClassifier', 'GaussianNB', 'MultinomialNB'],
                         default='LogisticRegression', help="Represents the classifier that will be used (default: MultinomialNB) .")
@@ -155,8 +159,7 @@ if __name__ == '__main__':
                         help="Number of folds for cross validation. Works only if a single dataset is loaded (default: 10).")
 
     args = parser.parse_args()
-    
-    
+
     print "There are %s datasets in total." % len(args.datalist)
     performances = defaultdict(lambda: [])
 
@@ -166,7 +169,8 @@ if __name__ == '__main__':
         path = args.path + data + '.zip'
         X, y = load_data(path, None)
         
-        # if scale it, use X = scale(X)
+        if args.scale: 
+            X = scale(X)
         
         print "     Load data completely"
 
